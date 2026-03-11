@@ -6,7 +6,8 @@ export default function CreatePage() {
   const [brandName, setBrandName] = useState("");
   const [sector, setSector] = useState("E-ticaret");
   const [slogan, setSlogan] = useState("");
-  const [format, setFormat] = useState("Instagram Post");
+  const [campaign, setCampaign] = useState("");
+  const [targetAudience, setTargetAudience] = useState("");
   const [result, setResult] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -24,7 +25,9 @@ export default function CreatePage() {
           brandName,
           sector,
           slogan,
-          format
+          format: "Instagram Post",
+          targetAudience,
+          campaign
         })
       });
 
@@ -43,94 +46,117 @@ export default function CreatePage() {
   }
 
   return (
-    <main style={{ maxWidth: 720, margin: "0 auto", padding: 24 }}>
-      <h1 style={{ fontSize: 32, fontWeight: 700, marginBottom: 8 }}>
-        AI İçerik Oluştur
-      </h1>
-      <p style={{ marginBottom: 24 }}>
-        Marka bilgilerini gir, içerik formatını seç ve AI metin üretsin.
-      </p>
+    <main style={{ maxWidth: 900, margin: "0 auto" }}>
+      <div
+        style={{
+          background: "white",
+          borderRadius: 16,
+          padding: 32,
+          boxShadow: "0 10px 30px rgba(0,0,0,0.08)",
+        }}
+      >
+        <h1 style={{ fontSize: 32, marginTop: 0, marginBottom: 8 }}>
+          AI Instagram Post Generator
+        </h1>
+        <p style={{ color: "#4b5563", marginBottom: 24 }}>
+          Marka bilgilerini gir, kampanyanı yaz ve Instagram post metnini üret.
+        </p>
 
-      <div style={{ display: "grid", gap: 16 }}>
-        <div>
-          <label style={{ display: "block", marginBottom: 6 }}>Marka Adı</label>
-          <input
-            type="text"
-            placeholder="Örn: Dijivex"
-            value={brandName}
-            onChange={(e) => setBrandName(e.target.value)}
-            style={{ width: "100%", padding: 12 }}
-          />
-        </div>
+        <div style={{ display: "grid", gap: 16 }}>
+          <div>
+            <label style={{ display: "block", marginBottom: 6 }}>Marka Adı</label>
+            <input
+              type="text"
+              value={brandName}
+              onChange={(e) => setBrandName(e.target.value)}
+              placeholder="Örn: Dijivex"
+              style={{ width: "100%", padding: 12, borderRadius: 10, border: "1px solid #d1d5db" }}
+            />
+          </div>
 
-        <div>
-          <label style={{ display: "block", marginBottom: 6 }}>Sektör</label>
-          <select
-            value={sector}
-            onChange={(e) => setSector(e.target.value)}
-            style={{ width: "100%", padding: 12 }}
-          >
-            <option>E-ticaret</option>
-            <option>Takı</option>
-            <option>Mobilya</option>
-            <option>Bebek Ürünleri</option>
-            <option>Reklam Ajansı</option>
-          </select>
-        </div>
+          <div>
+            <label style={{ display: "block", marginBottom: 6 }}>Sektör</label>
+            <select
+              value={sector}
+              onChange={(e) => setSector(e.target.value)}
+              style={{ width: "100%", padding: 12, borderRadius: 10, border: "1px solid #d1d5db" }}
+            >
+              <option>E-ticaret</option>
+              <option>Takı</option>
+              <option>Mobilya</option>
+              <option>Bebek Ürünleri</option>
+              <option>Reklam Ajansı</option>
+              <option>Kozmetik</option>
+              <option>Giyim</option>
+            </select>
+          </div>
 
-        <div>
-          <label style={{ display: "block", marginBottom: 6 }}>Slogan</label>
-          <input
-            type="text"
-            placeholder="Örn: Tarzinizi yapay zeka ile one cikarın"
-            value={slogan}
-            onChange={(e) => setSlogan(e.target.value)}
-            style={{ width: "100%", padding: 12 }}
-          />
-        </div>
+          <div>
+            <label style={{ display: "block", marginBottom: 6 }}>Slogan</label>
+            <input
+              type="text"
+              value={slogan}
+              onChange={(e) => setSlogan(e.target.value)}
+              placeholder="Örn: Markanı öne çıkar"
+              style={{ width: "100%", padding: 12, borderRadius: 10, border: "1px solid #d1d5db" }}
+            />
+          </div>
 
-        <div>
-          <label style={{ display: "block", marginBottom: 6 }}>Format</label>
-          <select
-            value={format}
-            onChange={(e) => setFormat(e.target.value)}
-            style={{ width: "100%", padding: 12 }}
-          >
-            <option>Instagram Post</option>
-            <option>Instagram Story</option>
-            <option>Reklam Görseli</option>
-            <option>Video Prompt</option>
-          </select>
-        </div>
+          <div>
+            <label style={{ display: "block", marginBottom: 6 }}>Kampanya / Teklif</label>
+            <input
+              type="text"
+              value={campaign}
+              onChange={(e) => setCampaign(e.target.value)}
+              placeholder="Örn: %20 indirim, ücretsiz kargo"
+              style={{ width: "100%", padding: 12, borderRadius: 10, border: "1px solid #d1d5db" }}
+            />
+          </div>
 
-        <button
-          type="button"
-          onClick={handleGenerate}
-          disabled={loading}
-          style={{
-            padding: 14,
-            border: "none",
-            cursor: "pointer",
-            fontWeight: 700,
-          }}
-        >
-          {loading ? "Üretiliyor..." : "İçerik Oluştur"}
-        </button>
+          <div>
+            <label style={{ display: "block", marginBottom: 6 }}>Hedef Kitle</label>
+            <input
+              type="text"
+              value={targetAudience}
+              onChange={(e) => setTargetAudience(e.target.value)}
+              placeholder="Örn: 25-40 yaş kadın girişimciler"
+              style={{ width: "100%", padding: 12, borderRadius: 10, border: "1px solid #d1d5db" }}
+            />
+          </div>
 
-        {result && (
-          <div
+          <button
+            type="button"
+            onClick={handleGenerate}
+            disabled={loading}
             style={{
-              marginTop: 16,
-              padding: 16,
-              background: "#fff",
-              border: "1px solid #ddd",
-              whiteSpace: "pre-wrap",
+              padding: 14,
+              border: "none",
+              borderRadius: 12,
+              cursor: "pointer",
+              fontWeight: 700,
+              background: "#111827",
+              color: "white",
             }}
           >
-            <strong>AI Sonucu:</strong>
-            <p style={{ marginTop: 12 }}>{result}</p>
-          </div>
-        )}
+            {loading ? "Instagram post üretiliyor..." : "Instagram Post Üret"}
+          </button>
+
+          {result && (
+            <div
+              style={{
+                marginTop: 8,
+                padding: 20,
+                background: "#f9fafb",
+                border: "1px solid #e5e7eb",
+                borderRadius: 14,
+                whiteSpace: "pre-wrap",
+              }}
+            >
+              <strong>AI Post Metni:</strong>
+              <p style={{ marginTop: 12, lineHeight: 1.7 }}>{result}</p>
+            </div>
+          )}
+        </div>
       </div>
     </main>
   );
