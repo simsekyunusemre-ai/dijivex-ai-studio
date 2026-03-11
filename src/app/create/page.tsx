@@ -21,21 +21,25 @@ export default function CreatePage() {
     setImageUrl("");
 
     try {
+      const formData = new FormData();
+      formData.append("brandName", brandName);
+      formData.append("sector", sector);
+      formData.append("slogan", slogan);
+      formData.append("format", "Instagram Post");
+      formData.append("targetAudience", targetAudience);
+      formData.append("campaign", campaign);
+
+      if (logoFile) {
+        formData.append("logoFile", logoFile);
+      }
+
+      if (referenceFile) {
+        formData.append("referenceFile", referenceFile);
+      }
+
       const res = await fetch("/api/generate", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          brandName,
-          sector,
-          slogan,
-          format: "Instagram Post",
-          targetAudience,
-          campaign,
-          hasLogo: !!logoFile,
-          hasReference: !!referenceFile,
-        }),
+        body: formData,
       });
 
       const data = await res.json();
