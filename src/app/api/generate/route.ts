@@ -16,7 +16,7 @@ export async function POST(req: Request) {
       campaign,
     } = body;
 
-    const prompt = `
+    const textPrompt = `
 Sen profesyonel bir Türkçe reklam metni yazarı ve sosyal medya içerik uzmanısın.
 
 Görev:
@@ -55,16 +55,39 @@ Slogan: ${slogan}
 Format: ${format}
 Kampanya: ${campaign}
 Hedef kitle: ${targetAudience}
-    `;
+`;
 
-    const response = await client.responses.create({
+    const imagePrompt = `
+Create a premium Instagram post background for a Turkish brand.
+
+Brand name: ${brandName}
+Sector: ${sector}
+Campaign: ${campaign}
+Target audience: ${targetAudience}
+Style: modern, premium, clean, high-converting social media ad design
+Composition: leave clear empty space for headline, description, call-to-action, and logo
+Important: do NOT add any text, letters, words, typography, watermark, or logos in the image.
+Important: the image must look like a professional Instagram ad background.
+`;
+
+    const textResponse = await client.responses.create({
       model: "gpt-4.1-mini",
-      input: prompt,
+      input: textPrompt,
     });
 
-    const text = response.output_text || "Metin üretilemedi.";
+    const imageResponse = await client.images.generate({
+      model: "gpt-image-1",
+      prompt: imagePrompt,
+      size: "1024x1024",
+    });
 
-    return Response.json({ text });
+    const text = textResponse.output_text || "Metin üretilemedi.";
+    const imageBase64 = imageResponse.data?.[0]?.b64_json || null;
+
+    return Response.json({
+      text,
+      imageBase64,
+    });
   } catch (error) {
     return Response.json({ error: "Bir hata oluştu." }, { status: 500 });
   }
