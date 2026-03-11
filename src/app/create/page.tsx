@@ -183,6 +183,7 @@ export default function CreatePage() {
 
           <div style={{ display: "grid", gap: 16 }}>
             <div
+  <div
   style={{
     background: "#f9fafb",
     border: "1px solid #e5e7eb",
@@ -194,16 +195,92 @@ export default function CreatePage() {
   <strong>Üretilen Görsel:</strong>
 
   {imageUrl ? (
-    <div style={{ marginTop: 16 }}>
+    <div
+      style={{
+        marginTop: 16,
+        position: "relative",
+        width: "100%",
+        borderRadius: 12,
+        overflow: "hidden",
+      }}
+    >
       <img
         src={imageUrl}
         alt="AI tarafından üretilen Instagram post görseli"
         style={{
           width: "100%",
-          borderRadius: 12,
           display: "block",
         }}
       />
+
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          padding: 24,
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "space-between",
+          color: "white",
+          textShadow: "0 2px 10px rgba(0,0,0,0.55)",
+        }}
+      >
+        <div>
+          <div
+            style={{
+              fontSize: 30,
+              fontWeight: 800,
+              lineHeight: 1.15,
+              maxWidth: "85%",
+              marginBottom: 12,
+            }}
+          >
+            {slogan || brandName || "Instagram Post"}
+          </div>
+
+          <div
+            style={{
+              fontSize: 15,
+              lineHeight: 1.5,
+              maxWidth: "75%",
+            }}
+          >
+            {campaign || "Markanı öne çıkaran güçlü içerikler üret."}
+          </div>
+        </div>
+
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "end",
+          }}
+        >
+          <div
+            style={{
+              fontSize: 14,
+              fontWeight: 700,
+              background: "rgba(0,0,0,0.35)",
+              padding: "8px 12px",
+              borderRadius: 999,
+            }}
+          >
+            {sector}
+          </div>
+
+          <div
+            style={{
+              fontSize: 18,
+              fontWeight: 800,
+              background: "rgba(0,0,0,0.35)",
+              padding: "10px 14px",
+              borderRadius: 12,
+            }}
+          >
+            {brandName || "Dijivex"}
+          </div>
+        </div>
+      </div>
     </div>
   ) : (
     <p style={{ marginTop: 12, color: "#6b7280" }}>
