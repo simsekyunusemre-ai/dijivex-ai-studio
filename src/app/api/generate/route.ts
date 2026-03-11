@@ -6,17 +6,20 @@ const client = new OpenAI({
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
+    const formData = await req.formData();
 
-    const {
-      brandName,
-      sector,
-      slogan,
-      format,
-      targetAudience,
-      campaign,
-      hasReference,
-    } = body;
+    const brandName = String(formData.get("brandName") || "");
+    const sector = String(formData.get("sector") || "");
+    const slogan = String(formData.get("slogan") || "");
+    const format = String(formData.get("format") || "");
+    const targetAudience = String(formData.get("targetAudience") || "");
+    const campaign = String(formData.get("campaign") || "");
+
+    const logoFile = formData.get("logoFile") as File | null;
+    const referenceFile = formData.get("referenceFile") as File | null;
+
+    const hasLogo = !!logoFile && logoFile.size > 0;
+    const hasReference = !!referenceFile && referenceFile.size > 0;
 
     const textPrompt = `
 Sen profesyonel bir Türkçe reklam metni yazarı ve sosyal medya içerik uzmanısın.
@@ -60,7 +63,7 @@ Hedef kitle: ${targetAudience}
 `;
 
     const imagePrompt = `
-Instagram için modern ve premium bir reklam postu arka planı oluştur.
+Instagram için modern ve premium bir reklam postu oluştur.
 
 Marka: ${brandName}
 Sektör: ${sector}
@@ -76,16 +79,10 @@ Tasarım kuralları:
 - Arka plan güçlü ama metin alanlarını boğmasın
 - Türk pazarı için uygun reklam estetiği taşısın
 - Kesinlikle yazı, harf, kelime, tipografi, watermark veya logo ekleme
-
+${hasLogo ? "- Marka logosu için uygun bir köşe alanı bırak" : ""}
 ${
   hasReference
-    ? `
-Ek kural:
-- Kullanıcı referans / ürün görseli yükledi.
-- Bu yüzden kompozisyon ürün odaklı düşünülmeli.
-- Ürün merkeze yakın, dikkat çekici ve reklam postuna uygun şekilde yerleştirilmiş hissi vermeli.
-- Görsel sanki ürün tanıtımı için hazırlanmış profesyonel bir sosyal medya post zemini gibi olsun.
-`
+    ? "- Referans / ürün görseli olduğu için kompozisyon ürün odaklı olsun; ürün mekânda sergilenen premium bir ürün hissi versin"
     : ""
 }
 `;
@@ -107,6 +104,8 @@ Ek kural:
     return Response.json({
       text,
       imageBase64,
+      hasLogo,
+      hasReference,
     });
   } catch (error) {
     console.error("Generate route error:", error);
