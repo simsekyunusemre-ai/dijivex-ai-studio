@@ -12,6 +12,9 @@ export default function CreatePage() {
   const [imageUrl, setImageUrl] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [referenceFile, setReferenceFile] = useState<File | null>(null);
+
   async function handleGenerate() {
     setLoading(true);
     setResult("");
@@ -30,6 +33,8 @@ export default function CreatePage() {
           format: "Instagram Post",
           targetAudience,
           campaign,
+          hasLogo: !!logoFile,
+          hasReference: !!referenceFile,
         }),
       });
 
@@ -64,8 +69,10 @@ export default function CreatePage() {
         <h1 style={{ fontSize: 32, marginTop: 0, marginBottom: 8 }}>
           AI Instagram Post Generator
         </h1>
+
         <p style={{ color: "#4b5563", marginBottom: 24 }}>
-          Marka bilgilerini gir, kampanyanı yaz ve aynı sayfada hem metin hem görsel üret.
+          Marka bilgilerini gir, kampanyanı yaz, referans görsel ekle ve aynı
+          sayfada hem metin hem görsel üret.
         </p>
 
         <div
@@ -78,7 +85,9 @@ export default function CreatePage() {
         >
           <div style={{ display: "grid", gap: 16 }}>
             <div>
-              <label style={{ display: "block", marginBottom: 6 }}>Marka Adı</label>
+              <label style={{ display: "block", marginBottom: 6 }}>
+                Marka Adı
+              </label>
               <input
                 type="text"
                 value={brandName}
@@ -94,7 +103,9 @@ export default function CreatePage() {
             </div>
 
             <div>
-              <label style={{ display: "block", marginBottom: 6 }}>Sektör</label>
+              <label style={{ display: "block", marginBottom: 6 }}>
+                Sektör
+              </label>
               <select
                 value={sector}
                 onChange={(e) => setSector(e.target.value)}
@@ -116,12 +127,14 @@ export default function CreatePage() {
             </div>
 
             <div>
-              <label style={{ display: "block", marginBottom: 6 }}>Slogan</label>
+              <label style={{ display: "block", marginBottom: 6 }}>
+                Slogan
+              </label>
               <input
                 type="text"
                 value={slogan}
                 onChange={(e) => setSlogan(e.target.value)}
-                placeholder="Örn: Markanı öne çıkar"
+                placeholder="Örn: İlkbahar Kampanyası"
                 style={{
                   width: "100%",
                   padding: 12,
@@ -132,12 +145,14 @@ export default function CreatePage() {
             </div>
 
             <div>
-              <label style={{ display: "block", marginBottom: 6 }}>Kampanya / Teklif</label>
+              <label style={{ display: "block", marginBottom: 6 }}>
+                Kampanya / Teklif
+              </label>
               <input
                 type="text"
                 value={campaign}
                 onChange={(e) => setCampaign(e.target.value)}
-                placeholder="Örn: %20 indirim, ücretsiz kargo"
+                placeholder="Örn: %25 indirim, ücretsiz kargo"
                 style={{
                   width: "100%",
                   padding: 12,
@@ -148,17 +163,55 @@ export default function CreatePage() {
             </div>
 
             <div>
-              <label style={{ display: "block", marginBottom: 6 }}>Hedef Kitle</label>
+              <label style={{ display: "block", marginBottom: 6 }}>
+                Hedef Kitle
+              </label>
               <input
                 type="text"
                 value={targetAudience}
                 onChange={(e) => setTargetAudience(e.target.value)}
-                placeholder="Örn: 25-40 yaş kadın girişimciler"
+                placeholder="Örn: 25-40 yaş ev dekorasyon meraklıları"
                 style={{
                   width: "100%",
                   padding: 12,
                   borderRadius: 10,
                   border: "1px solid #d1d5db",
+                }}
+              />
+            </div>
+
+            <div>
+              <label style={{ display: "block", marginBottom: 6 }}>
+                Logo Yükle
+              </label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setLogoFile(e.target.files?.[0] || null)}
+                style={{
+                  width: "100%",
+                  padding: 12,
+                  borderRadius: 10,
+                  border: "1px solid #d1d5db",
+                  background: "white",
+                }}
+              />
+            </div>
+
+            <div>
+              <label style={{ display: "block", marginBottom: 6 }}>
+                Referans / Ürün Görseli
+              </label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setReferenceFile(e.target.files?.[0] || null)}
+                style={{
+                  width: "100%",
+                  padding: 12,
+                  borderRadius: 10,
+                  border: "1px solid #d1d5db",
+                  background: "white",
                 }}
               />
             </div>
@@ -183,111 +236,128 @@ export default function CreatePage() {
 
           <div style={{ display: "grid", gap: 16 }}>
             <div
-  <div
-  style={{
-    background: "#f9fafb",
-    border: "1px solid #e5e7eb",
-    borderRadius: 14,
-    padding: 16,
-    minHeight: 300,
-  }}
->
-  <strong>Üretilen Görsel:</strong>
+              style={{
+                background: "#f9fafb",
+                border: "1px solid #e5e7eb",
+                borderRadius: 14,
+                padding: 16,
+                minHeight: 300,
+              }}
+            >
+              <strong>Üretilen Görsel:</strong>
 
-  {imageUrl ? (
-    <div
-      style={{
-        marginTop: 16,
-        position: "relative",
-        width: "100%",
-        borderRadius: 12,
-        overflow: "hidden",
-      }}
-    >
-      <img
-        src={imageUrl}
-        alt="AI tarafından üretilen Instagram post görseli"
-        style={{
-          width: "100%",
-          display: "block",
-        }}
-      />
+              {imageUrl ? (
+                <div
+                  style={{
+                    marginTop: 16,
+                    position: "relative",
+                    width: "100%",
+                    borderRadius: 12,
+                    overflow: "hidden",
+                  }}
+                >
+                  <img
+                    src={imageUrl}
+                    alt="AI tarafından üretilen Instagram post görseli"
+                    style={{
+                      width: "100%",
+                      display: "block",
+                    }}
+                  />
 
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          padding: 24,
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "space-between",
-          color: "white",
-          textShadow: "0 2px 10px rgba(0,0,0,0.55)",
-        }}
-      >
-        <div>
-          <div
-            style={{
-              fontSize: 30,
-              fontWeight: 800,
-              lineHeight: 1.15,
-              maxWidth: "85%",
-              marginBottom: 12,
-            }}
-          >
-            {slogan || brandName || "Instagram Post"}
-          </div>
+                  <div
+                    style={{
+                      position: "absolute",
+                      inset: 0,
+                      padding: 24,
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "space-between",
+                      color: "white",
+                      textShadow: "0 2px 10px rgba(0,0,0,0.55)",
+                    }}
+                  >
+                    <div>
+                      <div
+                        style={{
+                          fontSize: 30,
+                          fontWeight: 800,
+                          lineHeight: 1.15,
+                          maxWidth: "85%",
+                          marginBottom: 12,
+                        }}
+                      >
+                        {slogan || brandName || "Instagram Post"}
+                      </div>
 
-          <div
-            style={{
-              fontSize: 15,
-              lineHeight: 1.5,
-              maxWidth: "75%",
-            }}
-          >
-            {campaign || "Markanı öne çıkaran güçlü içerikler üret."}
-          </div>
-        </div>
+                      <div
+                        style={{
+                          fontSize: 16,
+                          fontWeight: 600,
+                          lineHeight: 1.4,
+                          maxWidth: "80%",
+                          marginBottom: 10,
+                        }}
+                      >
+                        {campaign || "Özel kampanya fırsatını kaçırma"}
+                      </div>
 
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "end",
-          }}
-        >
-          <div
-            style={{
-              fontSize: 14,
-              fontWeight: 700,
-              background: "rgba(0,0,0,0.35)",
-              padding: "8px 12px",
-              borderRadius: 999,
-            }}
-          >
-            {sector}
-          </div>
+                      <div
+                        style={{
+                          fontSize: 14,
+                          lineHeight: 1.5,
+                          maxWidth: "75%",
+                          background: "rgba(0,0,0,0.25)",
+                          padding: "10px 12px",
+                          borderRadius: 10,
+                        }}
+                      >
+                        {targetAudience ||
+                          "Markanı öne çıkaran güçlü ve dikkat çekici içerikler."}
+                      </div>
+                    </div>
 
-          <div
-            style={{
-              fontSize: 18,
-              fontWeight: 800,
-              background: "rgba(0,0,0,0.35)",
-              padding: "10px 14px",
-              borderRadius: 12,
-            }}
-          >
-            {brandName || "Dijivex"}
-          </div>
-        </div>
-      </div>
-    </div>
-  ) : (
-    <p style={{ marginTop: 12, color: "#6b7280" }}>
-      Henüz görsel üretilmedi.
-    </p>
-  )}
-</div>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "end",
+                        gap: 12,
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontSize: 14,
+                          fontWeight: 700,
+                          background: "rgba(0,0,0,0.35)",
+                          padding: "8px 12px",
+                          borderRadius: 999,
+                        }}
+                      >
+                        {sector}
+                      </div>
+
+                      <div
+                        style={{
+                          fontSize: 18,
+                          fontWeight: 800,
+                          background: "rgba(0,0,0,0.35)",
+                          padding: "10px 14px",
+                          borderRadius: 12,
+                        }}
+                      >
+                        {brandName || "Dijivex"}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <p style={{ marginTop: 12, color: "#6b7280" }}>
+                  Henüz görsel üretilmedi.
+                </p>
+              )}
+            </div>
+
             <div
               style={{
                 background: "#f9fafb",
