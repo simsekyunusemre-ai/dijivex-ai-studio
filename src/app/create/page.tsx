@@ -183,35 +183,34 @@ export default function CreatePage() {
 
           <div style={{ display: "grid", gap: 16 }}>
             <div
-              style={{
-                background: "#f9fafb",
-                border: "1px solid #e5e7eb",
-                borderRadius: 14,
-                padding: 16,
-                minHeight: 300,
-              }}
-            >
-              <strong>Üretilen Görsel:</strong>
+  style={{
+    background: "#f9fafb",
+    border: "1px solid #e5e7eb",
+    borderRadius: 14,
+    padding: 16,
+    minHeight: 300,
+  }}
+>
+  <strong>Üretilen Görsel:</strong>
 
-              {imageUrl ? (
-                <div style={{ marginTop: 16 }}>
-                  <img
-                    src={imageUrl}
-                    alt="AI tarafından üretilen Instagram post görseli"
-                    style={{
-                      width: "100%",
-                      borderRadius: 12,
-                      display: "block",
-                    }}
-                  />
-                </div>
-              ) : (
-                <p style={{ marginTop: 12, color: "#6b7280" }}>
-                  Henüz görsel üretilmedi.
-                </p>
-              )}
-            </div>
-
+  {imageUrl ? (
+    <div style={{ marginTop: 16 }}>
+      <img
+        src={imageUrl}
+        alt="AI tarafından üretilen Instagram post görseli"
+        style={{
+          width: "100%",
+          borderRadius: 12,
+          display: "block",
+        }}
+      />
+    </div>
+  ) : (
+    <p style={{ marginTop: 12, color: "#6b7280" }}>
+      Henüz görsel üretilmedi.
+    </p>
+  )}
+</div>
             <div
               style={{
                 background: "#f9fafb",
