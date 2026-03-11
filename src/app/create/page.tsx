@@ -269,18 +269,98 @@ export default function CreatePage() {
                     }}
                   />
 
-                  <div
-                    style={{
-                      position: "absolute",
-                      inset: 0,
-                      padding: 24,
-                      display: "flex",
-                      flexDirection: "column",
-                      justifyContent: "space-between",
-                      color: "white",
-                      textShadow: "0 2px 10px rgba(0,0,0,0.55)",
-                    }}
-                  >
+                 <div
+  style={{
+    position: "absolute",
+    inset: 0,
+    padding: 24,
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "space-between",
+    color: "white",
+    textShadow: "0 2px 10px rgba(0,0,0,0.55)",
+  }}
+>
+  <div
+    style={{
+      maxWidth: "72%",
+      display: "grid",
+      gap: 10,
+      alignContent: "start",
+    }}
+  >
+    <div
+      style={{
+        fontSize: 26,
+        fontWeight: 800,
+        lineHeight: 1.15,
+        background: "rgba(0,0,0,0.28)",
+        padding: "10px 14px",
+        borderRadius: 12,
+      }}
+    >
+      {slogan || brandName || "Instagram Post"}
+    </div>
+
+    <div
+      style={{
+        fontSize: 15,
+        fontWeight: 700,
+        lineHeight: 1.35,
+        background: "rgba(0,0,0,0.28)",
+        padding: "10px 14px",
+        borderRadius: 12,
+      }}
+    >
+      {campaign || "Özel kampanya fırsatını kaçırma"}
+    </div>
+
+    <div
+      style={{
+        fontSize: 13,
+        lineHeight: 1.45,
+        background: "rgba(0,0,0,0.24)",
+        padding: "10px 14px",
+        borderRadius: 12,
+      }}
+    >
+      {targetAudience || "Markanı öne çıkaran güçlü ve dikkat çekici içerikler."}
+    </div>
+  </div>
+
+  <div
+    style={{
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "end",
+      gap: 12,
+    }}
+  >
+    <div
+      style={{
+        fontSize: 13,
+        fontWeight: 700,
+        background: "rgba(0,0,0,0.35)",
+        padding: "8px 12px",
+        borderRadius: 999,
+      }}
+    >
+      {sector}
+    </div>
+
+    <div
+      style={{
+        fontSize: 17,
+        fontWeight: 800,
+        background: "rgba(0,0,0,0.35)",
+        padding: "10px 14px",
+        borderRadius: 12,
+      }}
+    >
+      {brandName || "Dijivex"}
+    </div>
+  </div>
+</div>
                     <div>
                       <div
                         style={{
