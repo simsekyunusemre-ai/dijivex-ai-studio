@@ -7,6 +7,7 @@ const client = new OpenAI({
 export async function POST(req: Request) {
   try {
     const body = await req.json();
+
     const {
       brandName,
       sector,
@@ -14,6 +15,7 @@ export async function POST(req: Request) {
       format,
       targetAudience,
       campaign,
+      hasReference,
     } = body;
 
     const textPrompt = `
@@ -58,16 +60,34 @@ Hedef kitle: ${targetAudience}
 `;
 
     const imagePrompt = `
-Create a premium Instagram post background for a Turkish brand.
+Instagram için modern ve premium bir reklam postu arka planı oluştur.
 
-Brand name: ${brandName}
-Sector: ${sector}
-Campaign: ${campaign}
-Target audience: ${targetAudience}
-Style: modern, premium, clean, high-converting social media ad design
-Composition: leave clear empty space for headline, description, call-to-action, and logo
-Important: do NOT add any text, letters, words, typography, watermark, or logos in the image.
-Important: the image must look like a professional Instagram ad background.
+Marka: ${brandName}
+Sektör: ${sector}
+Slogan teması: ${slogan}
+Kampanya: ${campaign}
+Hedef kitle: ${targetAudience}
+
+Tasarım kuralları:
+- Profesyonel Instagram reklam postu gibi görünsün
+- Premium, modern, temiz ve satış odaklı olsun
+- Başlık, slogan, kampanya ve marka adı için boş alan bırak
+- Görsel düzeni dengeli olsun
+- Arka plan güçlü ama metin alanlarını boğmasın
+- Türk pazarı için uygun reklam estetiği taşısın
+- Kesinlikle yazı, harf, kelime, tipografi, watermark veya logo ekleme
+
+${
+  hasReference
+    ? `
+Ek kural:
+- Kullanıcı referans / ürün görseli yükledi.
+- Bu yüzden kompozisyon ürün odaklı düşünülmeli.
+- Ürün merkeze yakın, dikkat çekici ve reklam postuna uygun şekilde yerleştirilmiş hissi vermeli.
+- Görsel sanki ürün tanıtımı için hazırlanmış profesyonel bir sosyal medya post zemini gibi olsun.
+`
+    : ""
+}
 `;
 
     const textResponse = await client.responses.create({
@@ -89,6 +109,11 @@ Important: the image must look like a professional Instagram ad background.
       imageBase64,
     });
   } catch (error) {
-    return Response.json({ error: "Bir hata oluştu." }, { status: 500 });
+    console.error("Generate route error:", error);
+
+    return Response.json(
+      { error: "Bir hata oluştu." },
+      { status: 500 }
+    );
   }
 }
