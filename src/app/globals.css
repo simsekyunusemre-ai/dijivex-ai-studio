@@ -6,9 +6,9 @@ html,
 body {
   margin: 0;
   padding: 0;
-  font-family: Arial, sans-serif;
   background: #f3f4f6;
   color: #111827;
+  font-family: Arial, sans-serif;
 }
 
 a {
@@ -16,121 +16,128 @@ a {
   text-decoration: none;
 }
 
-.page-shell {
+.app-shell {
+  display: flex;
   min-height: 100vh;
-  background: #f3f4f6;
 }
 
-.page-container {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 32px 20px;
-}
-
-.page-title {
-  font-size: 42px;
-  line-height: 1.1;
-  margin: 0 0 10px;
-  font-weight: 700;
-}
-
-.page-subtitle {
-  margin: 0 0 28px;
-  font-size: 16px;
-  color: #4b5563;
-}
-
-.form-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 24px;
-}
-
-.card {
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 24px;
+.sidebar {
+  width: 260px;
+  background: #0f172a;
+  color: #ffffff;
   padding: 24px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
-.card-title {
-  margin: 0 0 18px;
-  font-size: 26px;
+.brand {
+  font-size: 28px;
   font-weight: 700;
-}
-
-.form-group {
-  margin-bottom: 18px;
-}
-
-.label {
-  display: block;
   margin-bottom: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  color: #374151;
 }
 
-.input,
-.select,
-.textarea,
-.file-input {
-  width: 100%;
-  border: 1px solid #d1d5db;
-  border-radius: 16px;
-  padding: 14px 16px;
-  font-size: 14px;
-  background: #fff;
-  color: #111827;
-}
-
-.textarea {
-  min-height: 120px;
-  resize: vertical;
-}
-
-.note-box {
-  margin-top: 14px;
-  padding: 14px 16px;
-  border-radius: 18px;
-  background: #f9fafb;
-  color: #4b5563;
-  font-size: 14px;
+.brand-subtitle {
+  font-size: 13px;
+  color: #cbd5e1;
   line-height: 1.5;
 }
 
-.primary-button {
-  width: 100%;
-  border: none;
-  border-radius: 18px;
-  padding: 14px 18px;
-  background: #111827;
-  color: #ffffff;
-  font-size: 15px;
-  font-weight: 700;
-  cursor: pointer;
+.sidebar-nav {
+  display: grid;
+  gap: 12px;
+  margin-top: 32px;
 }
 
-.primary-button:hover {
-  background: #000000;
+.sidebar-nav a {
+  display: block;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.sidebar-nav a:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-footer {
+  margin-top: 24px;
+}
+
+.credit-box {
+  padding: 16px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.credit-label {
+  font-size: 12px;
+  color: #cbd5e1;
+  margin-bottom: 6px;
+}
+
+.credit-value {
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.main-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 32px;
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.topbar-title {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.topbar-subtitle {
+  margin: 6px 0 0;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.primary-link-btn {
+  display: inline-block;
+  padding: 12px 18px;
+  border-radius: 14px;
+  background: #111827;
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.page-content {
+  padding: 32px;
 }
 
 @media (max-width: 900px) {
-  .page-title {
-    font-size: 34px;
+  .app-shell {
+    flex-direction: column;
   }
 
-  .form-grid {
-    grid-template-columns: 1fr;
+  .sidebar {
+    width: 100%;
   }
 
-  .page-container {
-    padding: 24px 16px;
-  }
-
-  .card {
+  .topbar {
     padding: 18px;
-    border-radius: 20px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+  }
+
+  .page-content {
+    padding: 18px;
   }
 }
