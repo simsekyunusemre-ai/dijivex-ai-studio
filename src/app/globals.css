@@ -141,3 +141,28 @@ a {
     padding: 18px;
   }
 }
+/* DASHBOARD KART GRID */
+
+.card-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:24px;
+}
+
+/* TABLET */
+@media (max-width:900px){
+
+  .card-grid{
+    grid-template-columns:repeat(2,1fr);
+  }
+
+}
+
+/* MOBIL */
+@media (max-width:600px){
+
+  .card-grid{
+    grid-template-columns:1fr;
+  }
+
+}
