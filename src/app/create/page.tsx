@@ -1,6 +1,29 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+
+function parseGeneratedText(text: string) {
+  const result = {
+    baslik: "",
+    aciklama: "",
+    cagri: "",
+    hashtag: "",
+  };
+
+  if (!text) return result;
+
+  const baslikMatch = text.match(/BASLIK:\s*([\s\S]*?)(?:ACIKLAMA:|$)/i);
+  const aciklamaMatch = text.match(/ACIKLAMA:\s*([\s\S]*?)(?:CAGRI:|$)/i);
+  const cagriMatch = text.match(/CAGRI:\s*([\s\S]*?)(?:HASHTAG:|$)/i);
+  const hashtagMatch = text.match(/HASHTAG:\s*([\s\S]*?)$/i);
+
+  result.baslik = baslikMatch?.[1]?.trim() || "";
+  result.aciklama = aciklamaMatch?.[1]?.trim() || "";
+  result.cagri = cagriMatch?.[1]?.trim() || "";
+  result.hashtag = hashtagMatch?.[1]?.trim() || "";
+
+  return result;
+}
 
 export default function CreatePage() {
   const [brandName, setBrandName] = useState("");
@@ -14,6 +37,9 @@ export default function CreatePage() {
   const [loading, setLoading] = useState(false);
   const [resultText, setResultText] = useState("");
   const [resultImage, setResultImage] = useState("");
+  const [logoPreview, setLogoPreview] = useState("");
+
+  const parsed = useMemo(() => parseGeneratedText(resultText), [resultText]);
 
   const handleGenerate = async () => {
     try {
@@ -56,6 +82,21 @@ export default function CreatePage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleLogoChange = (file: File | null) => {
+    setLogoFile(file);
+
+    if (!file) {
+      setLogoPreview("");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setLogoPreview(String(reader.result || ""));
+    };
+    reader.readAsDataURL(file);
   };
 
   return (
@@ -180,7 +221,7 @@ export default function CreatePage() {
               type="text"
               value={targetAudience}
               onChange={(e) => setTargetAudience(e.target.value)}
-              placeholder="Orn: 25-40 yas kadin musteriler"
+              placeholder="Orn: 25-40 yas arasi online alisveris yapan kadinlar"
               style={{
                 width: "100%",
                 padding: 14,
@@ -208,7 +249,7 @@ export default function CreatePage() {
             </label>
             <input
               type="file"
-              onChange={(e) => setLogoFile(e.target.files?.[0] || null)}
+              onChange={(e) => handleLogoChange(e.target.files?.[0] || null)}
               style={{
                 width: "100%",
                 padding: 12,
@@ -288,17 +329,144 @@ export default function CreatePage() {
         )}
 
         {resultImage && (
-          <div style={{ marginBottom: 20 }}>
+          <div
+            style={{
+              position: "relative",
+              width: "100%",
+              maxWidth: 620,
+              marginBottom: 24,
+              borderRadius: 24,
+              overflow: "hidden",
+              boxShadow: "0 16px 40px rgba(0,0,0,0.12)",
+              background: "#111827",
+            }}
+          >
             <img
               src={resultImage}
               alt="Uretilen kreatif zemini"
               style={{
                 width: "100%",
-                maxWidth: 560,
-                borderRadius: 16,
-                border: "1px solid #e5e7eb",
+                display: "block",
               }}
             />
+
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                padding: 28,
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "space-between",
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                <div
+                  style={{
+                    padding: "8px 14px",
+                    borderRadius: 999,
+                    background: "rgba(255,255,255,0.18)",
+                    color: "white",
+                    fontSize: 13,
+                    fontWeight: 700,
+                    backdropFilter: "blur(8px)",
+                  }}
+                >
+                  {sector || "Marka"}
+                </div>
+
+                {logoPreview ? (
+                  <img
+                    src={logoPreview}
+                    alt="Logo"
+                    style={{
+                      width: 56,
+                      height: 56,
+                      objectFit: "contain",
+                      borderRadius: 14,
+                      background: "rgba(255,255,255,0.92)",
+                      padding: 8,
+                    }}
+                  />
+                ) : (
+                  <div
+                    style={{
+                      padding: "10px 14px",
+                      borderRadius: 14,
+                      background: "rgba(255,255,255,0.85)",
+                      color: "#111827",
+                      fontSize: 13,
+                      fontWeight: 700,
+                    }}
+                  >
+                    {brandName || "Marka"}
+                  </div>
+                )}
+              </div>
+
+              <div
+                style={{
+                  maxWidth: "78%",
+                  background: "rgba(255,255,255,0.14)",
+                  border: "1px solid rgba(255,255,255,0.18)",
+                  borderRadius: 24,
+                  padding: 22,
+                  backdropFilter: "blur(10px)",
+                  color: "white",
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: 34,
+                    lineHeight: 1.08,
+                    fontWeight: 800,
+                    marginBottom: 14,
+                    textShadow: "0 3px 14px rgba(0,0,0,0.22)",
+                  }}
+                >
+                  {parsed.baslik || "Baslik burada gorunecek"}
+                </div>
+
+                <div
+                  style={{
+                    fontSize: 16,
+                    lineHeight: 1.55,
+                    color: "rgba(255,255,255,0.94)",
+                    marginBottom: 18,
+                  }}
+                >
+                  {parsed.aciklama || "Aciklama burada gorunecek"}
+                </div>
+
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "center" }}>
+                  <div
+                    style={{
+                      display: "inline-block",
+                      padding: "12px 18px",
+                      borderRadius: 999,
+                      background: "#ffffff",
+                      color: "#111827",
+                      fontSize: 14,
+                      fontWeight: 800,
+                    }}
+                  >
+                    {parsed.cagri || "Cagri alani"}
+                  </div>
+
+                  {parsed.hashtag && (
+                    <div
+                      style={{
+                        fontSize: 13,
+                        color: "rgba(255,255,255,0.86)",
+                        fontWeight: 600,
+                      }}
+                    >
+                      {parsed.hashtag.split("\n").join("  ")}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
         )}
 
