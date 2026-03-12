@@ -1,466 +1,68 @@
-"use client";
-
-import { useState } from "react";
-
 export default function CreatePage() {
-  const [brandName, setBrandName] = useState("");
-  const [sector, setSector] = useState("E-ticaret");
-  const [slogan, setSlogan] = useState("");
-  const [campaign, setCampaign] = useState("");
-  const [targetAudience, setTargetAudience] = useState("");
-  const [result, setResult] = useState("");
-  const [imageUrl, setImageUrl] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  const [logoFile, setLogoFile] = useState<File | null>(null);
-  const [referenceFile, setReferenceFile] = useState<File | null>(null);
-
-  async function handleGenerate() {
-    setLoading(true);
-    setResult("");
-    setImageUrl("");
-
-    try {
-      const formData = new FormData();
-      formData.append("brandName", brandName);
-      formData.append("sector", sector);
-      formData.append("slogan", slogan);
-      formData.append("format", "Instagram Post");
-      formData.append("targetAudience", targetAudience);
-      formData.append("campaign", campaign);
-
-      if (logoFile) {
-        formData.append("logoFile", logoFile);
-      }
-
-      if (referenceFile) {
-        formData.append("referenceFile", referenceFile);
-      }
-
-      const res = await fetch("/api/generate", {
-        method: "POST",
-        body: formData,
-      });
-
-      const data = await res.json();
-
-      if (data.text) {
-        setResult(data.text);
-      } else {
-        setResult("Bir hata oluştu.");
-      }
-
-      if (data.imageBase64) {
-        setImageUrl(`data:image/png;base64,${data.imageBase64}`);
-      }
-    } catch (error) {
-      setResult("Bağlantı hatası oluştu.");
-    }
-
-    setLoading(false);
-  }
-
   return (
-    <main style={{ maxWidth: 1100, margin: "0 auto" }}>
-      <div
-        style={{
-          background: "white",
-          borderRadius: 16,
-          padding: 32,
-          boxShadow: "0 10px 30px rgba(0,0,0,0.08)",
-        }}
-      >
-        <h1 style={{ fontSize: 32, marginTop: 0, marginBottom: 8 }}>
-          AI Instagram Post Generator
-        </h1>
+    <main className="min-h-screen bg-zinc-950 text-white px-4 py-8">
+      <div className="mx-auto w-full max-w-5xl">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold">Yeni Tasarim Olustur</h1>
+          <p className="mt-2 text-zinc-400">
+            Marka bilgilerini gir, format sec ve Dijivex Studio tasarimini hazirlasin.
+          </p>
+        </div>
 
-        <p style={{ color: "#4b5563", marginBottom: 24 }}>
-          Marka bilgilerini gir, kampanyanı yaz, referans görsel ekle ve aynı
-          sayfada hem metin hem görsel üret.
-        </p>
+        <div className="grid gap-6 md:grid-cols-2">
+          <div className="rounded-3xl border border-zinc-800 bg-zinc-900 p-5">
+            <label className="mb-2 block text-sm text-zinc-300">Marka Adi</label>
+            <input
+              type="text"
+              placeholder="Marka adini gir"
+              className="mb-4 w-full rounded-2xl border border-zinc-700 bg-zinc-950 px-4 py-3 outline-none"
+            />
 
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: 24,
-            alignItems: "start",
-          }}
-        >
-          <div style={{ display: "grid", gap: 16 }}>
-            <div>
-              <label style={{ display: "block", marginBottom: 6 }}>
-                Marka Adı
-              </label>
-              <input
-                type="text"
-                value={brandName}
-                onChange={(e) => setBrandName(e.target.value)}
-                placeholder="Örn: Dijivex"
-                style={{
-                  width: "100%",
-                  padding: 12,
-                  borderRadius: 10,
-                  border: "1px solid #d1d5db",
-                }}
-              />
-            </div>
+            <label className="mb-2 block text-sm text-zinc-300">Sektor</label>
+            <select className="mb-4 w-full rounded-2xl border border-zinc-700 bg-zinc-950 px-4 py-3 outline-none">
+              <option>Taki</option>
+              <option>Bebek</option>
+              <option>Mobilya</option>
+              <option>Guzellik</option>
+              <option>Diger</option>
+            </select>
 
-            <div>
-              <label style={{ display: "block", marginBottom: 6 }}>
-                Sektör
-              </label>
-              <select
-                value={sector}
-                onChange={(e) => setSector(e.target.value)}
-                style={{
-                  width: "100%",
-                  padding: 12,
-                  borderRadius: 10,
-                  border: "1px solid #d1d5db",
-                }}
-              >
-                <option>E-ticaret</option>
-                <option>Takı</option>
-                <option>Mobilya</option>
-                <option>Bebek Ürünleri</option>
-                <option>Reklam Ajansı</option>
-                <option>Kozmetik</option>
-                <option>Giyim</option>
-              </select>
-            </div>
+            <label className="mb-2 block text-sm text-zinc-300">Format</label>
+            <select className="mb-4 w-full rounded-2xl border border-zinc-700 bg-zinc-950 px-4 py-3 outline-none">
+              <option>Instagram Post</option>
+              <option>Instagram Story</option>
+            </select>
 
-            <div>
-              <label style={{ display: "block", marginBottom: 6 }}>
-                Slogan
-              </label>
-              <input
-                type="text"
-                value={slogan}
-                onChange={(e) => setSlogan(e.target.value)}
-                placeholder="Örn: İlkbahar Kampanyası"
-                style={{
-                  width: "100%",
-                  padding: 12,
-                  borderRadius: 10,
-                  border: "1px solid #d1d5db",
-                }}
-              />
-            </div>
-
-            <div>
-              <label style={{ display: "block", marginBottom: 6 }}>
-                Kampanya / Teklif
-              </label>
-              <input
-                type="text"
-                value={campaign}
-                onChange={(e) => setCampaign(e.target.value)}
-                placeholder="Örn: %25 indirim, ücretsiz kargo"
-                style={{
-                  width: "100%",
-                  padding: 12,
-                  borderRadius: 10,
-                  border: "1px solid #d1d5db",
-                }}
-              />
-            </div>
-
-            <div>
-              <label style={{ display: "block", marginBottom: 6 }}>
-                Hedef Kitle
-              </label>
-              <input
-                type="text"
-                value={targetAudience}
-                onChange={(e) => setTargetAudience(e.target.value)}
-                placeholder="Örn: 25-40 yaş ev dekorasyon meraklıları"
-                style={{
-                  width: "100%",
-                  padding: 12,
-                  borderRadius: 10,
-                  border: "1px solid #d1d5db",
-                }}
-              />
-            </div>
-
-            <div>
-              <label style={{ display: "block", marginBottom: 6 }}>
-                Logo Yükle
-              </label>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => setLogoFile(e.target.files?.[0] || null)}
-                style={{
-                  width: "100%",
-                  padding: 12,
-                  borderRadius: 10,
-                  border: "1px solid #d1d5db",
-                  background: "white",
-                }}
-              />
-            </div>
-
-            <div>
-              <label style={{ display: "block", marginBottom: 6 }}>
-                Referans / Ürün Görseli
-              </label>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => setReferenceFile(e.target.files?.[0] || null)}
-                style={{
-                  width: "100%",
-                  padding: 12,
-                  borderRadius: 10,
-                  border: "1px solid #d1d5db",
-                  background: "white",
-                }}
-              />
-            </div>
-
-            <button
-              type="button"
-              onClick={handleGenerate}
-              disabled={loading}
-              style={{
-                padding: 14,
-                border: "none",
-                borderRadius: 12,
-                cursor: "pointer",
-                fontWeight: 700,
-                background: "#111827",
-                color: "white",
-              }}
-            >
-              {loading ? "Post üretiliyor..." : "Post Üret"}
-            </button>
+            <label className="mb-2 block text-sm text-zinc-300">Slogan</label>
+            <input
+              type="text"
+              placeholder="Kampanya veya slogan yaz"
+              className="w-full rounded-2xl border border-zinc-700 bg-zinc-950 px-4 py-3 outline-none"
+            />
           </div>
 
-          <div style={{ display: "grid", gap: 16 }}>
-            <div
-              style={{
-                background: "#f9fafb",
-                border: "1px solid #e5e7eb",
-                borderRadius: 14,
-                padding: 16,
-                minHeight: 300,
-              }}
-            >
-              <strong>Üretilen Görsel:</strong>
+          <div className="rounded-3xl border border-zinc-800 bg-zinc-900 p-5">
+            <label className="mb-2 block text-sm text-zinc-300">Logo Yukle</label>
+            <input
+              type="file"
+              className="mb-4 w-full rounded-2xl border border-zinc-700 bg-zinc-950 px-4 py-3 outline-none"
+            />
 
-              {imageUrl ? (
-                <div
-                  style={{
-                    marginTop: 16,
-                    position: "relative",
-                    width: "100%",
-                    borderRadius: 12,
-                    overflow: "hidden",
-                  }}
-                >
-                  <img
-                    src={imageUrl}
-                    alt="AI tarafından üretilen Instagram post görseli"
-                    style={{
-                      width: "100%",
-                      display: "block",
-                    }}
-                  />
+            <label className="mb-2 block text-sm text-zinc-300">Urun Gorseli Yukle</label>
+            <input
+              type="file"
+              className="mb-4 w-full rounded-2xl border border-zinc-700 bg-zinc-950 px-4 py-3 outline-none"
+            />
 
-                 <div
-  style={{
-    position: "absolute",
-    inset: 0,
-    padding: 24,
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "space-between",
-    color: "white",
-    textShadow: "0 2px 10px rgba(0,0,0,0.55)",
-  }}
->
-  <div
-    style={{
-      maxWidth: "72%",
-      display: "grid",
-      gap: 10,
-      alignContent: "start",
-    }}
-  >
-    <div
-      style={{
-        fontSize: 26,
-        fontWeight: 800,
-        lineHeight: 1.15,
-        background: "rgba(0,0,0,0.28)",
-        padding: "10px 14px",
-        borderRadius: 12,
-      }}
-    >
-      {slogan || brandName || "Instagram Post"}
-    </div>
+            <label className="mb-2 block text-sm text-zinc-300">Referans Gorsel</label>
+            <input
+              type="file"
+              className="mb-6 w-full rounded-2xl border border-zinc-700 bg-zinc-950 px-4 py-3 outline-none"
+            />
 
-    <div
-      style={{
-        fontSize: 15,
-        fontWeight: 700,
-        lineHeight: 1.35,
-        background: "rgba(0,0,0,0.28)",
-        padding: "10px 14px",
-        borderRadius: 12,
-      }}
-    >
-      {campaign || "Özel kampanya fırsatını kaçırma"}
-    </div>
-
-    <div
-      style={{
-        fontSize: 13,
-        lineHeight: 1.45,
-        background: "rgba(0,0,0,0.24)",
-        padding: "10px 14px",
-        borderRadius: 12,
-      }}
-    >
-      {targetAudience || "Markanı öne çıkaran güçlü ve dikkat çekici içerikler."}
-    </div>
-  </div>
-
-  <div
-    style={{
-      display: "flex",
-      justifyContent: "space-between",
-      alignItems: "end",
-      gap: 12,
-    }}
-  >
-    <div
-      style={{
-        fontSize: 13,
-        fontWeight: 700,
-        background: "rgba(0,0,0,0.35)",
-        padding: "8px 12px",
-        borderRadius: 999,
-      }}
-    >
-      {sector}
-    </div>
-
-    <div
-      style={{
-        fontSize: 17,
-        fontWeight: 800,
-        background: "rgba(0,0,0,0.35)",
-        padding: "10px 14px",
-        borderRadius: 12,
-      }}
-    >
-      {brandName || "Dijivex"}
-    </div>
-  </div>
-</div>
-                    <div>
-                      <div
-                        style={{
-                          fontSize: 30,
-                          fontWeight: 800,
-                          lineHeight: 1.15,
-                          maxWidth: "85%",
-                          marginBottom: 12,
-                        }}
-                      >
-                        {slogan || brandName || "Instagram Post"}
-                      </div>
-
-                      <div
-                        style={{
-                          fontSize: 16,
-                          fontWeight: 600,
-                          lineHeight: 1.4,
-                          maxWidth: "80%",
-                          marginBottom: 10,
-                        }}
-                      >
-                        {campaign || "Özel kampanya fırsatını kaçırma"}
-                      </div>
-
-                      <div
-                        style={{
-                          fontSize: 14,
-                          lineHeight: 1.5,
-                          maxWidth: "75%",
-                          background: "rgba(0,0,0,0.25)",
-                          padding: "10px 12px",
-                          borderRadius: 10,
-                        }}
-                      >
-                        {targetAudience ||
-                          "Markanı öne çıkaran güçlü ve dikkat çekici içerikler."}
-                      </div>
-                    </div>
-
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "end",
-                        gap: 12,
-                      }}
-                    >
-                      <div
-                        style={{
-                          fontSize: 14,
-                          fontWeight: 700,
-                          background: "rgba(0,0,0,0.35)",
-                          padding: "8px 12px",
-                          borderRadius: 999,
-                        }}
-                      >
-                        {sector}
-                      </div>
-
-                      <div
-                        style={{
-                          fontSize: 18,
-                          fontWeight: 800,
-                          background: "rgba(0,0,0,0.35)",
-                          padding: "10px 14px",
-                          borderRadius: 12,
-                        }}
-                      >
-                        {brandName || "Dijivex"}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <p style={{ marginTop: 12, color: "#6b7280" }}>
-                  Henüz görsel üretilmedi.
-                </p>
-              )}
-            </div>
-
-            <div
-              style={{
-                background: "#f9fafb",
-                border: "1px solid #e5e7eb",
-                borderRadius: 14,
-                padding: 16,
-                minHeight: 240,
-                whiteSpace: "pre-wrap",
-              }}
-            >
-              <strong>AI Post Metni:</strong>
-              {result ? (
-                <p style={{ marginTop: 12, lineHeight: 1.7 }}>{result}</p>
-              ) : (
-                <p style={{ marginTop: 12, color: "#6b7280" }}>
-                  Henüz metin üretilmedi.
-                </p>
-              )}
-            </div>
+            <button className="w-full rounded-2xl bg-white px-4 py-3 font-semibold text-black">
+              Tasarim Olustur
+            </button>
           </div>
         </div>
       </div>
