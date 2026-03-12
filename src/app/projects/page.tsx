@@ -12,11 +12,11 @@ export default function ProjectsPage() {
         }}
       >
         <h1 style={{ fontSize: 32, margin: 0, marginBottom: 10 }}>
-          Tasarimlarim
+          Tasarımlarım
         </h1>
 
         <p style={{ color: "#6b7280", margin: 0 }}>
-          Urettigin reklam kreatifleri burada listelenecek.
+          Ürettigin reklam kreatifleri burada listelenecek.
         </p>
       </div>
 
@@ -30,9 +30,9 @@ export default function ProjectsPage() {
             boxShadow: "0 10px 30px rgba(0,0,0,0.06)",
           }}
         >
-          <h3 style={{ marginTop: 0 }}>Toplam Tasarim</h3>
+          <h3 style={{ marginTop: 0 }}>Toplam Tasarım</h3>
           <div style={{ fontSize: 40, fontWeight: 700, marginTop: 10 }}>0</div>
-          <p style={{ color: "#6b7280" }}>Hesabinda kayitli toplam kreatif.</p>
+          <p style={{ color: "#6b7280" }}>Hesabında kayıtlı toplam kreatif.</p>
         </div>
 
         <div
@@ -45,7 +45,7 @@ export default function ProjectsPage() {
         >
           <h3 style={{ marginTop: 0 }}>Bu Ay</h3>
           <div style={{ fontSize: 40, fontWeight: 700, marginTop: 10 }}>0</div>
-          <p style={{ color: "#6b7280" }}>Bu ay olusturulan kreatif sayisi.</p>
+          <p style={{ color: "#6b7280" }}>Bu ay olusturulan kreatif sayısı.</p>
         </div>
 
         <div
@@ -56,9 +56,9 @@ export default function ProjectsPage() {
             boxShadow: "0 10px 30px rgba(0,0,0,0.06)",
           }}
         >
-          <h3 style={{ marginTop: 0 }}>Hizli Islem</h3>
+          <h3 style={{ marginTop: 0 }}>Hızlı İşlem</h3>
           <p style={{ color: "#6b7280" }}>
-            Yeni reklam kreatifi olusturmaya hemen basla.
+            Yeni reklam kreatifi oluŞturmaya hemen başla.
           </p>
 
           <a
@@ -89,10 +89,10 @@ export default function ProjectsPage() {
           marginTop: 24,
         }}
       >
-        <h2 style={{ marginTop: 0, marginBottom: 10 }}>Kayitli Kreatifler</h2>
+        <h2 style={{ marginTop: 0, marginBottom: 10 }}>Kayıtlı Kreatifler</h2>
 
         <p style={{ color: "#6b7280", marginBottom: 24 }}>
-          Henuz kayitli bir tasarim bulunmuyor.
+          Henuz kayıtlı bir tasarım bulunmuyor.
         </p>
 
         <div
@@ -105,7 +105,7 @@ export default function ProjectsPage() {
             background: "#f9fafb",
           }}
         >
-          Ilk reklam kreatifini olusturdugunda burada gorunecek.
+          İlk reklam kreatifini olusturduğunda burada görünecek.
         </div>
       </div>
     </div>
