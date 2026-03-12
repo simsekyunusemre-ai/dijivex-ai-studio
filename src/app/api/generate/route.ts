@@ -67,29 +67,41 @@ Hedef kitle: ${targetAudience}
 Create a premium advertising background layout for a social media creative.
 
 Brand: ${brandName}
-Sector: ${sector}
+Sector reference only: ${sector}
 Campaign theme: ${campaign}
 Audience: ${targetAudience}
 Format: ${format}
 
 Important rules:
 - Create ONLY the visual background and composition
+- Sector is only a style reference, do not display it visually
 - Leave clean empty space areas for headline, description and CTA
 - Do NOT add any text
 - Do NOT add letters
 - Do NOT add words
 - Do NOT add typography
+- Do NOT add symbols
+- Do NOT add characters
+- Do NOT add initials
+- Do NOT add icons with letters
+- Do NOT add fake logos
 - Do NOT add watermark
-- Do NOT add logo
+- Do NOT add brand marks
+- Do NOT add app logos
+- Do NOT add social media logos
+- Do NOT add Instagram logo
+- Do NOT add any circular badge with letters or symbols
+- Use only abstract premium design elements
+- Use only shapes, gradients, light, shadows, product-stage composition and clean surfaces
 - Make it look like a premium ad creative base template
 - Balanced composition
 - Strong but clean visual hierarchy
 - Modern, premium, minimal, conversion-focused look
 - Suitable for Turkish e-commerce and Meta Ads aesthetics
-${hasLogo ? "- Leave a suitable clean corner area for later logo placement" : ""}
+${hasLogo ? "- Leave a clean corner area for later logo placement" : ""}
 ${
   hasReference
-    ? "- Make the composition product-focused, as if a premium product visual will be placed or highlighted in the layout"
+    ? "- Make the composition product-focused, as if a premium product visual will be placed or highlighted later"
     : "- Create a flexible premium promotional composition without a fixed product object"
 }
 `;
