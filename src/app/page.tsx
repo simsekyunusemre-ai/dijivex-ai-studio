@@ -13,18 +13,15 @@ export default function Home() {
         <h1 style={{ fontSize: 36, margin: 0, marginBottom: 12 }}>
           Dijivex AI Studio
         </h1>
+
         <p style={{ fontSize: 18, color: "#4b5563", margin: 0 }}>
           Metin, görsel, reklam ve video prompt üretimi için hepsi bir arada AI stüdyo.
         </p>
       </div>
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-          gap: 20,
-        }}
-      >
+      {/* KART GRID */}
+      <div className="card-grid">
+
         <a
           href="/create"
           style={{
@@ -37,7 +34,10 @@ export default function Home() {
           }}
         >
           <h3 style={{ marginTop: 0 }}>AI İçerik</h3>
-          <p>Instagram post, reklam metni ve kampanya içerikleri üret.</p>
+
+          <p>
+            Instagram post, reklam metni ve kampanya içerikleri üret.
+          </p>
         </a>
 
         <a
@@ -52,7 +52,10 @@ export default function Home() {
           }}
         >
           <h3 style={{ marginTop: 0 }}>Dashboard</h3>
-          <p>Kullanım geçmişi, özet bilgiler ve araç erişimi burada olacak.</p>
+
+          <p>
+            Kullanım geçmişi, özet bilgiler ve araç erişimi burada olacak.
+          </p>
         </a>
 
         <a
@@ -67,8 +70,12 @@ export default function Home() {
           }}
         >
           <h3 style={{ marginTop: 0 }}>Giriş</h3>
-          <p>Kullanıcı hesabı ve üyelik sistemi için giriş alanı.</p>
+
+          <p>
+            Kullanıcı hesabı ve üyelik sistemi için giriş alanı.
+          </p>
         </a>
+
       </div>
     </div>
   );
