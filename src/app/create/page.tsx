@@ -48,6 +48,7 @@ export default function CreatePage() {
       setResultImage("");
 
       const formData = new FormData();
+
       formData.append("brandName", brandName);
       formData.append("sector", sector);
       formData.append("format", format);
@@ -75,7 +76,10 @@ export default function CreatePage() {
       }
 
       setResultText(data.text || "");
-      setResultImage(data.imageBase64 ? `data:image/png;base64,${data.imageBase64}` : "");
+
+      if (data.imageBase64) {
+        setResultImage(`data:image/png;base64,${data.imageBase64}`);
+      }
     } catch (error) {
       console.error(error);
       alert("Bir hata olustu.");
@@ -93,14 +97,17 @@ export default function CreatePage() {
     }
 
     const reader = new FileReader();
+
     reader.onload = () => {
       setLogoPreview(String(reader.result || ""));
     };
+
     reader.readAsDataURL(file);
   };
 
   return (
     <div>
+
       <div
         style={{
           background: "white",
@@ -110,128 +117,16 @@ export default function CreatePage() {
           marginBottom: 24,
         }}
       >
-        <h1 style={{ fontSize: 32, margin: 0, marginBottom: 10 }}>
+        <h1 style={{ fontSize: 32, marginBottom: 10 }}>
           Reklam Kreatifi Olustur
         </h1>
 
-        <p style={{ color: "#6b7280", margin: 0 }}>
-          Marka bilgilerini gir, gorselleri yukle ve Meta Ads icin kreatif olustur.
+        <p style={{ color: "#6b7280" }}>
+          Marka bilgilerini gir ve AI ile reklam kreatifi olustur.
         </p>
       </div>
 
       <div className="card-grid">
-        <div
-          style={{
-            background: "white",
-            padding: 24,
-            borderRadius: 16,
-            boxShadow: "0 10px 30px rgba(0,0,0,0.06)",
-          }}
-        >
-          <h3 style={{ marginTop: 0, marginBottom: 20 }}>Temel Bilgiler</h3>
-
-          <div style={{ marginBottom: 16 }}>
-            <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>
-              Marka Adi
-            </label>
-            <input
-              type="text"
-              value={brandName}
-              onChange={(e) => setBrandName(e.target.value)}
-              placeholder="Marka adini gir"
-              style={{
-                width: "100%",
-                padding: 14,
-                borderRadius: 12,
-                border: "1px solid #d1d5db",
-                fontSize: 14,
-              }}
-            />
-          </div>
-
-          <div style={{ marginBottom: 16 }}>
-            <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>
-              Sektor
-            </label>
-            <select
-              value={sector}
-              onChange={(e) => setSector(e.target.value)}
-              style={{
-                width: "100%",
-                padding: 14,
-                borderRadius: 12,
-                border: "1px solid #d1d5db",
-                fontSize: 14,
-              }}
-            >
-              <option>Taki</option>
-              <option>Mobilya</option>
-              <option>Guzellik</option>
-              <option>Moda</option>
-              <option>Diger</option>
-            </select>
-          </div>
-
-          <div style={{ marginBottom: 16 }}>
-            <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>
-              Format
-            </label>
-            <select
-              value={format}
-              onChange={(e) => setFormat(e.target.value)}
-              style={{
-                width: "100%",
-                padding: 14,
-                borderRadius: 12,
-                border: "1px solid #d1d5db",
-                fontSize: 14,
-              }}
-            >
-              <option>Instagram Post</option>
-              <option>Instagram Story</option>
-              <option>Meta Ads Kreatifi</option>
-            </select>
-          </div>
-
-          <div style={{ marginBottom: 16 }}>
-            <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>
-              Kampanya Mesaji
-            </label>
-            <textarea
-              value={campaign}
-              onChange={(e) => setCampaign(e.target.value)}
-              placeholder="Orn: Yeni sezon urunlerinde ozel indirim"
-              rows={5}
-              style={{
-                width: "100%",
-                padding: 14,
-                borderRadius: 12,
-                border: "1px solid #d1d5db",
-                fontSize: 14,
-                resize: "vertical",
-              }}
-            />
-          </div>
-
-          <div style={{ marginBottom: 16 }}>
-            <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>
-              Hedef Kitle
-            </label>
-            <input
-              type="text"
-              value={targetAudience}
-              onChange={(e) => setTargetAudience(e.target.value)}
-              placeholder="Orn: 25-40 yas arasi online alisveris yapan kadinlar"
-              style={{
-                width: "100%",
-                padding: 14,
-                borderRadius: 12,
-                border: "1px solid #d1d5db",
-                fontSize: 14,
-              }}
-            />
-          </div>
-        </div>
 
         <div
           style={{
@@ -241,74 +136,95 @@ export default function CreatePage() {
             boxShadow: "0 10px 30px rgba(0,0,0,0.06)",
           }}
         >
-          <h3 style={{ marginTop: 0, marginBottom: 20 }}>Dosyalar ve Uretim</h3>
+          <h3>Temel Bilgiler</h3>
 
-          <div style={{ marginBottom: 16 }}>
-            <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>
-              Logo Yukle
-            </label>
-            <input
-              type="file"
-              onChange={(e) => handleLogoChange(e.target.files?.[0] || null)}
-              style={{
-                width: "100%",
-                padding: 12,
-                borderRadius: 12,
-                border: "1px solid #d1d5db",
-                fontSize: 14,
-              }}
-            />
-          </div>
-
-          <div style={{ marginBottom: 20 }}>
-            <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>
-              Referans Gorsel
-            </label>
-            <input
-              type="file"
-              onChange={(e) => setReferenceFile(e.target.files?.[0] || null)}
-              style={{
-                width: "100%",
-                padding: 12,
-                borderRadius: 12,
-                border: "1px solid #d1d5db",
-                fontSize: 14,
-              }}
-            />
-          </div>
-
-          <div
+          <input
+            placeholder="Marka adi"
+            value={brandName}
+            onChange={(e) => setBrandName(e.target.value)}
             style={{
-              background: "#f9fafb",
-              borderRadius: 14,
-              padding: 16,
-              marginBottom: 20,
-              color: "#4b5563",
-              lineHeight: 1.6,
+              width: "100%",
+              padding: 14,
+              borderRadius: 10,
+              border: "1px solid #ddd",
+              marginBottom: 14,
+            }}
+          />
+
+          <select
+            value={sector}
+            onChange={(e) => setSector(e.target.value)}
+            style={{
+              width: "100%",
+              padding: 14,
+              borderRadius: 10,
+              border: "1px solid #ddd",
+              marginBottom: 14,
             }}
           >
-            Sistem once metni, sonra da yazi eklenmemis kreatif zeminini uretecek.
-          </div>
+            <option>Taki</option>
+            <option>Moda</option>
+            <option>Mobilya</option>
+            <option>Kozmetik</option>
+            <option>Diger</option>
+          </select>
+
+          <textarea
+            placeholder="Kampanya mesaji"
+            value={campaign}
+            onChange={(e) => setCampaign(e.target.value)}
+            rows={4}
+            style={{
+              width: "100%",
+              padding: 14,
+              borderRadius: 10,
+              border: "1px solid #ddd",
+              marginBottom: 14,
+            }}
+          />
+
+          <input
+            placeholder="Hedef kitle"
+            value={targetAudience}
+            onChange={(e) => setTargetAudience(e.target.value)}
+            style={{
+              width: "100%",
+              padding: 14,
+              borderRadius: 10,
+              border: "1px solid #ddd",
+              marginBottom: 14,
+            }}
+          />
+
+          <input
+            type="file"
+            onChange={(e) => handleLogoChange(e.target.files?.[0] || null)}
+            style={{ marginBottom: 14 }}
+          />
+
+          <input
+            type="file"
+            onChange={(e) => setReferenceFile(e.target.files?.[0] || null)}
+            style={{ marginBottom: 20 }}
+          />
 
           <button
             onClick={handleGenerate}
-            disabled={loading}
             style={{
               width: "100%",
               padding: 16,
-              borderRadius: 14,
+              borderRadius: 12,
               border: "none",
               background: "#111827",
               color: "white",
               fontWeight: 700,
-              fontSize: 15,
               cursor: "pointer",
-              opacity: loading ? 0.7 : 1,
             }}
           >
             {loading ? "Uretiliyor..." : "Kreatif Olustur"}
           </button>
         </div>
+
       </div>
 
       <div
@@ -320,170 +236,118 @@ export default function CreatePage() {
           marginTop: 24,
         }}
       >
-        <h2 style={{ marginTop: 0, marginBottom: 16 }}>Onizleme Alani</h2>
-
-        {!resultText && !resultImage && (
-          <p style={{ color: "#6b7280", margin: 0 }}>
-            Kreatif uretildikten sonra burada gorunecek.
-          </p>
-        )}
+        <h2>Onizleme Alani</h2>
 
         {resultImage && (
           <div
             style={{
               position: "relative",
-              width: "100%",
               maxWidth: 620,
-              marginBottom: 24,
-              borderRadius: 24,
+              borderRadius: 20,
               overflow: "hidden",
-              boxShadow: "0 16px 40px rgba(0,0,0,0.12)",
-              background: "#111827",
             }}
           >
             <img
               src={resultImage}
-              alt="Uretilen kreatif zemini"
-              style={{
-                width: "100%",
-                display: "block",
-              }}
+              style={{ width: "100%" }}
             />
 
             <div
               style={{
                 position: "absolute",
                 inset: 0,
-                padding: 28,
+                padding: 30,
                 display: "flex",
                 flexDirection: "column",
                 justifyContent: "space-between",
               }}
             >
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "flex-start",
-                }}
-              >
-                <div
-                  style={{
-                    padding: "8px 14px",
-                    borderRadius: 999,
-                    background: "rgba(255,255,255,0.18)",
-                    color: "white",
-                    fontSize: 13,
-                    fontWeight: 700,
-                    backdropFilter: "blur(8px)",
-                  }}
-                >
-                  {sector || "Marka"}
-                </div>
 
-                {logoPreview ? (
+              <div style={{ display: "flex", justifyContent: "flex-end" }}>
+
+                {logoPreview && (
                   <img
                     src={logoPreview}
-                    alt="Logo"
                     style={{
-                      width: 56,
-                      height: 56,
-                      objectFit: "contain",
-                      borderRadius: 14,
-                      background: "rgba(255,255,255,0.92)",
-                      padding: 8,
+                      width: 60,
+                      background: "white",
+                      padding: 10,
+                      borderRadius: 12,
                     }}
                   />
-                ) : (
-                  <div
-                    style={{
-                      padding: "10px 14px",
-                      borderRadius: 14,
-                      background: "rgba(255,255,255,0.85)",
-                      color: "#111827",
-                      fontSize: 13,
-                      fontWeight: 700,
-                    }}
-                  >
-                    {brandName || "Marka"}
-                  </div>
                 )}
+
               </div>
 
               <div
                 style={{
-                  maxWidth: "78%",
-                  background: "rgba(255,255,255,0.14)",
-                  border: "1px solid rgba(255,255,255,0.18)",
-                  borderRadius: 24,
-                  padding: 22,
+                  maxWidth: "75%",
+                  background: "rgba(255,255,255,0.18)",
+                  padding: 24,
+                  borderRadius: 20,
                   backdropFilter: "blur(10px)",
                   color: "white",
                 }}
               >
+
                 <div
                   style={{
                     fontSize: 34,
-                    lineHeight: 1.08,
                     fontWeight: 800,
-                    marginBottom: 14,
-                    textShadow: "0 3px 14px rgba(0,0,0,0.22)",
+                    marginBottom: 12,
                   }}
                 >
-                  {parsed.baslik || "Baslik burada gorunecek"}
+                  {parsed.baslik}
                 </div>
 
                 <div
                   style={{
                     fontSize: 16,
-                    lineHeight: 1.55,
-                    color: "rgba(255,255,255,0.94)",
-                    marginBottom: 18,
+                    marginBottom: 16,
                   }}
                 >
-                  {parsed.aciklama || "Aciklama burada gorunecek"}
+                  {parsed.aciklama}
                 </div>
 
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "center" }}>
-                  <div
-                    style={{
-                      display: "inline-block",
-                      padding: "12px 18px",
-                      borderRadius: 999,
-                      background: "#ffffff",
-                      color: "#111827",
-                      fontSize: 14,
-                      fontWeight: 800,
-                    }}
-                  >
-                    {parsed.cagri || "Cagri alani"}
-                  </div>
+                <div
+                  style={{
+                    background: "white",
+                    color: "#111827",
+                    padding: "10px 18px",
+                    borderRadius: 999,
+                    display: "inline-block",
+                    fontWeight: 700,
+                  }}
+                >
+                  {parsed.cagri}
                 </div>
+
               </div>
+
             </div>
+
           </div>
         )}
 
         {parsed.hashtag && (
           <div
             style={{
-              marginTop: 16,
-              background: "#f9fafb",
-              borderRadius: 14,
-              padding: 16,
-              color: "#4b5563",
-              fontSize: 14,
-              lineHeight: 1.7,
+              marginTop: 20,
+              background: "#f3f4f6",
+              padding: 14,
+              borderRadius: 12,
             }}
           >
-            <strong style={{ color: "#111827" }}>Hashtag:</strong>
+            <strong>Hashtag</strong>
 
-            <div style={{ marginTop: 8 }}>
-              {parsed.hashtag.split("\n").join("  ")}
+            <div style={{ marginTop: 6 }}>
+              {parsed.hashtag}
             </div>
           </div>
         )}
+
       </div>
+
     </div>
   );
 }
