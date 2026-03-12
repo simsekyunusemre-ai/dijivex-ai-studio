@@ -20,7 +20,7 @@ export default function RootLayout({
               <Link href="/">Ana Sayfa</Link>
               <Link href="/dashboard">Dashboard</Link>
               <Link href="/create">Reklam Kreatifi Olustur</Link>
-              <Link href="/projects">Tasarimlarim</Link>
+              <Link href="/projects">Tasarımlarım</Link>
               <Link href="/login">Giris</Link>
         
             </nav>
