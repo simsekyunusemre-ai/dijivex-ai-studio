@@ -453,17 +453,7 @@ export default function CreatePage() {
                     {parsed.cagri || "Cagri alani"}
                   </div>
 
-                  {parsed.hashtag && (
-                    <div
-                      style={{
-                        fontSize: 13,
-                        color: "rgba(255,255,255,0.86)",
-                        fontWeight: 600,
-                      }}
-                    >
-                      {parsed.hashtag.split("\n").join("  ")}
-                    </div>
-                  )}
+                
                 </div>
               </div>
             </div>
@@ -472,18 +462,25 @@ export default function CreatePage() {
 
         {resultText && (
           <div
-            style={{
-              whiteSpace: "pre-wrap",
-              lineHeight: 1.7,
-              color: "#111827",
-              background: "#f9fafb",
-              borderRadius: 14,
-              padding: 18,
-            }}
-          >
-            {resultText}
-          </div>
-        )}
+    {parsed.hashtag && (
+  <div
+    style={{
+      marginTop: 16,
+      background: "#f9fafb",
+      borderRadius: 14,
+      padding: 16,
+      color: "#4b5563",
+      fontSize: 14,
+      lineHeight: 1.7,
+    }}
+  >
+    <strong style={{ color: "#111827" }}>Hashtag:</strong>
+
+    <div style={{ marginTop: 8 }}>
+      {parsed.hashtag.split("\n").join("  ")}
+    </div>
+  </div>
+)}
       </div>
     </div>
   );
