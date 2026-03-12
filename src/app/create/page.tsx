@@ -1,7 +1,65 @@
+"use client";
+
+import { useState } from "react";
+
 export default function CreatePage() {
+  const [brandName, setBrandName] = useState("");
+  const [sector, setSector] = useState("Taki");
+  const [format, setFormat] = useState("Meta Ads Kreatifi");
+  const [campaign, setCampaign] = useState("");
+  const [targetAudience, setTargetAudience] = useState("");
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [referenceFile, setReferenceFile] = useState<File | null>(null);
+
+  const [loading, setLoading] = useState(false);
+  const [resultText, setResultText] = useState("");
+  const [resultImage, setResultImage] = useState("");
+
+  const handleGenerate = async () => {
+    try {
+      setLoading(true);
+      setResultText("");
+      setResultImage("");
+
+      const formData = new FormData();
+      formData.append("brandName", brandName);
+      formData.append("sector", sector);
+      formData.append("format", format);
+      formData.append("campaign", campaign);
+      formData.append("targetAudience", targetAudience);
+
+      if (logoFile) {
+        formData.append("logoFile", logoFile);
+      }
+
+      if (referenceFile) {
+        formData.append("referenceFile", referenceFile);
+      }
+
+      const response = await fetch("/api/generate", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        alert(data.error || "Bir hata olustu.");
+        return;
+      }
+
+      setResultText(data.text || "");
+      setResultImage(data.imageBase64 ? `data:image/png;base64,${data.imageBase64}` : "");
+    } catch (error) {
+      console.error(error);
+      alert("Bir hata olustu.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div>
-      {/* ÜST ALAN */}
       <div
         style={{
           background: "white",
@@ -12,17 +70,15 @@ export default function CreatePage() {
         }}
       >
         <h1 style={{ fontSize: 32, margin: 0, marginBottom: 10 }}>
-          Reklam Kreatifi Oluştur
+          Reklam Kreatifi Olustur
         </h1>
 
         <p style={{ color: "#6b7280", margin: 0 }}>
-          Marka bilgilerini gir, görselleri yükle ve Meta Ads için kreatif oluştur.
+          Marka bilgilerini gir, gorselleri yukle ve Meta Ads icin kreatif olustur.
         </p>
       </div>
 
-      {/* FORM GRID */}
       <div className="card-grid">
-        {/* SOL TARAF */}
         <div
           style={{
             background: "white",
@@ -35,11 +91,13 @@ export default function CreatePage() {
 
           <div style={{ marginBottom: 16 }}>
             <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>
-              Marka Adı
+              Marka Adi
             </label>
             <input
               type="text"
-              placeholder="Marka adını gir"
+              value={brandName}
+              onChange={(e) => setBrandName(e.target.value)}
+              placeholder="Marka adini gir"
               style={{
                 width: "100%",
                 padding: 14,
@@ -52,9 +110,11 @@ export default function CreatePage() {
 
           <div style={{ marginBottom: 16 }}>
             <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>
-              Sektör
+              Sektor
             </label>
             <select
+              value={sector}
+              onChange={(e) => setSector(e.target.value)}
               style={{
                 width: "100%",
                 padding: 14,
@@ -63,11 +123,11 @@ export default function CreatePage() {
                 fontSize: 14,
               }}
             >
-              <option>Takı</option>
+              <option>Taki</option>
               <option>Mobilya</option>
-              <option>Güzellik</option>
+              <option>Guzellik</option>
               <option>Moda</option>
-              <option>Diğer</option>
+              <option>Diger</option>
             </select>
           </div>
 
@@ -76,6 +136,8 @@ export default function CreatePage() {
               Format
             </label>
             <select
+              value={format}
+              onChange={(e) => setFormat(e.target.value)}
               style={{
                 width: "100%",
                 padding: 14,
@@ -92,10 +154,12 @@ export default function CreatePage() {
 
           <div style={{ marginBottom: 16 }}>
             <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>
-              Kampanya Mesajı
+              Kampanya Mesaji
             </label>
             <textarea
-              placeholder="Örn: Yeni sezon ürünlerinde özel indirim"
+              value={campaign}
+              onChange={(e) => setCampaign(e.target.value)}
+              placeholder="Orn: Yeni sezon urunlerinde ozel indirim"
               rows={5}
               style={{
                 width: "100%",
@@ -107,9 +171,27 @@ export default function CreatePage() {
               }}
             />
           </div>
+
+          <div style={{ marginBottom: 16 }}>
+            <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>
+              Hedef Kitle
+            </label>
+            <input
+              type="text"
+              value={targetAudience}
+              onChange={(e) => setTargetAudience(e.target.value)}
+              placeholder="Orn: 25-40 yas kadin musteriler"
+              style={{
+                width: "100%",
+                padding: 14,
+                borderRadius: 12,
+                border: "1px solid #d1d5db",
+                fontSize: 14,
+              }}
+            />
+          </div>
         </div>
 
-        {/* SAĞ TARAF */}
         <div
           style={{
             background: "white",
@@ -118,30 +200,15 @@ export default function CreatePage() {
             boxShadow: "0 10px 30px rgba(0,0,0,0.06)",
           }}
         >
-          <h3 style={{ marginTop: 0, marginBottom: 20 }}>Dosyalar ve Üretim</h3>
+          <h3 style={{ marginTop: 0, marginBottom: 20 }}>Dosyalar ve Uretim</h3>
 
           <div style={{ marginBottom: 16 }}>
             <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>
-              Logo Yükle
+              Logo Yukle
             </label>
             <input
               type="file"
-              style={{
-                width: "100%",
-                padding: 12,
-                borderRadius: 12,
-                border: "1px solid #d1d5db",
-                fontSize: 14,
-              }}
-            />
-          </div>
-
-          <div style={{ marginBottom: 16 }}>
-            <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>
-              Ürün Görseli
-            </label>
-            <input
-              type="file"
+              onChange={(e) => setLogoFile(e.target.files?.[0] || null)}
               style={{
                 width: "100%",
                 padding: 12,
@@ -154,10 +221,11 @@ export default function CreatePage() {
 
           <div style={{ marginBottom: 20 }}>
             <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>
-              Referans Görsel
+              Referans Gorsel
             </label>
             <input
               type="file"
+              onChange={(e) => setReferenceFile(e.target.files?.[0] || null)}
               style={{
                 width: "100%",
                 padding: 12,
@@ -178,10 +246,12 @@ export default function CreatePage() {
               lineHeight: 1.6,
             }}
           >
-            Sistem; marka adı, kampanya mesajı ve yüklediğin görsellere göre reklam kreatifi oluşturacak.
+            Sistem once metni, sonra da yazi eklenmemis kreatif zeminini uretecek.
           </div>
 
           <button
+            onClick={handleGenerate}
+            disabled={loading}
             style={{
               width: "100%",
               padding: 16,
@@ -192,14 +262,14 @@ export default function CreatePage() {
               fontWeight: 700,
               fontSize: 15,
               cursor: "pointer",
+              opacity: loading ? 0.7 : 1,
             }}
           >
-            Kreatif Oluştur
+            {loading ? "Uretiliyor..." : "Kreatif Olustur"}
           </button>
         </div>
       </div>
 
-      {/* ALT ÖNİZLEME */}
       <div
         style={{
           background: "white",
@@ -209,11 +279,43 @@ export default function CreatePage() {
           marginTop: 24,
         }}
       >
-        <h2 style={{ marginTop: 0, marginBottom: 10 }}>Önizleme Alanı</h2>
+        <h2 style={{ marginTop: 0, marginBottom: 16 }}>Onizleme Alani</h2>
 
-        <p style={{ color: "#6b7280", margin: 0 }}>
-          Kreatif üretildikten sonra burada görünecek.
-        </p>
+        {!resultText && !resultImage && (
+          <p style={{ color: "#6b7280", margin: 0 }}>
+            Kreatif uretildikten sonra burada gorunecek.
+          </p>
+        )}
+
+        {resultImage && (
+          <div style={{ marginBottom: 20 }}>
+            <img
+              src={resultImage}
+              alt="Uretilen kreatif zemini"
+              style={{
+                width: "100%",
+                maxWidth: 560,
+                borderRadius: 16,
+                border: "1px solid #e5e7eb",
+              }}
+            />
+          </div>
+        )}
+
+        {resultText && (
+          <div
+            style={{
+              whiteSpace: "pre-wrap",
+              lineHeight: 1.7,
+              color: "#111827",
+              background: "#f9fafb",
+              borderRadius: 14,
+              padding: 18,
+            }}
+          >
+            {resultText}
+          </div>
+        )}
       </div>
     </div>
   );
