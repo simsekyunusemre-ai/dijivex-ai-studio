@@ -360,7 +360,13 @@ export default function CreatePage() {
                 justifyContent: "space-between",
               }}
             >
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "flex-start",
+                }}
+              >
                 <div
                   style={{
                     padding: "8px 14px",
@@ -452,35 +458,31 @@ export default function CreatePage() {
                   >
                     {parsed.cagri || "Cagri alani"}
                   </div>
-
-                
                 </div>
               </div>
             </div>
           </div>
         )}
 
-        {resultText && (
+        {parsed.hashtag && (
           <div
-    {parsed.hashtag && (
-  <div
-    style={{
-      marginTop: 16,
-      background: "#f9fafb",
-      borderRadius: 14,
-      padding: 16,
-      color: "#4b5563",
-      fontSize: 14,
-      lineHeight: 1.7,
-    }}
-  >
-    <strong style={{ color: "#111827" }}>Hashtag:</strong>
+            style={{
+              marginTop: 16,
+              background: "#f9fafb",
+              borderRadius: 14,
+              padding: 16,
+              color: "#4b5563",
+              fontSize: 14,
+              lineHeight: 1.7,
+            }}
+          >
+            <strong style={{ color: "#111827" }}>Hashtag:</strong>
 
-    <div style={{ marginTop: 8 }}>
-      {parsed.hashtag.split("\n").join("  ")}
-    </div>
-  </div>
-)}
+            <div style={{ marginTop: 8 }}>
+              {parsed.hashtag.split("\n").join("  ")}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
