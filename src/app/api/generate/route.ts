@@ -22,30 +22,31 @@ export async function POST(req: Request) {
     const hasReference = !!referenceFile && referenceFile.size > 0;
 
     const textPrompt = `
-Sen profesyonel bir Türkçe reklam metni yazarı ve sosyal medya içerik uzmanısın.
+Sen profesyonel bir Turkce reklam metni yazari ve sosyal medya icerik uzmanisin.
 
-Görev:
-Kullanıcının verdiği bilgilere göre Instagram post için satış odaklı, profesyonel ve akıcı bir Türkçe metin üret.
+Gorev:
+Kullanicinin verdigi bilgilere gore Meta Ads ve Instagram post icin satis odakli, profesyonel ve akici bir Turkce reklam metni uret.
 
 Kurallar:
-- Türkçe karakterleri eksiksiz ve doğru kullan: Ç, Ğ, İ, Ö, Ş, Ü
-- Yazım hatası yapma
-- Metin satış odaklı olsun
-- Dikkat çekici bir başlık olsun
-- Kısa ama güçlü açıklama olsun
-- Sonunda harekete geçirici çağrı olsun
-- En sonda 3 kısa hashtag ekle
-- Çıktıyı düzenli ver
+- Turkce karakterleri dogru kullan
+- Yazim hatasi yapma
+- Metin dikkat cekici ama temiz olsun
+- Kisa ve guclu bir baslik yaz
+- Kisa reklam aciklamasi yaz
+- Net bir cagrida bulun
+- En sonda 3 kisa hashtag ver
+- Asiri uzun yazma
+- Profesyonel reklam dili kullan
 
-Çıktı formatı tam olarak şöyle olsun:
+Ciktiyi tam olarak su formatta ver:
 
-BAŞLIK:
+BASLIK:
 ...
 
-AÇIKLAMA:
+ACIKLAMA:
 ...
 
-ÇAĞRI:
+CAGRI:
 ...
 
 HASHTAG:
@@ -54,8 +55,8 @@ HASHTAG:
 #...
 
 Bilgiler:
-Marka adı: ${brandName}
-Sektör: ${sector}
+Marka adi: ${brandName}
+Sektor: ${sector}
 Slogan: ${slogan}
 Format: ${format}
 Kampanya: ${campaign}
@@ -63,27 +64,33 @@ Hedef kitle: ${targetAudience}
 `;
 
     const imagePrompt = `
-Instagram için modern ve premium bir reklam postu oluştur.
+Create a premium advertising background layout for a social media creative.
 
-Marka: ${brandName}
-Sektör: ${sector}
-Slogan teması: ${slogan}
-Kampanya: ${campaign}
-Hedef kitle: ${targetAudience}
+Brand: ${brandName}
+Sector: ${sector}
+Campaign theme: ${campaign}
+Audience: ${targetAudience}
+Format: ${format}
 
-Tasarım kuralları:
-- Profesyonel Instagram reklam postu gibi görünsün
-- Premium, modern, temiz ve satış odaklı olsun
-- Başlık, slogan, kampanya ve marka adı için boş alan bırak
-- Görsel düzeni dengeli olsun
-- Arka plan güçlü ama metin alanlarını boğmasın
-- Türk pazarı için uygun reklam estetiği taşısın
-- Kesinlikle yazı, harf, kelime, tipografi, watermark veya logo ekleme
-${hasLogo ? "- Marka logosu için uygun bir köşe alanı bırak" : ""}
+Important rules:
+- Create ONLY the visual background and composition
+- Leave clean empty space areas for headline, description and CTA
+- Do NOT add any text
+- Do NOT add letters
+- Do NOT add words
+- Do NOT add typography
+- Do NOT add watermark
+- Do NOT add logo
+- Make it look like a premium ad creative base template
+- Balanced composition
+- Strong but clean visual hierarchy
+- Modern, premium, minimal, conversion-focused look
+- Suitable for Turkish e-commerce and Meta Ads aesthetics
+${hasLogo ? "- Leave a suitable clean corner area for later logo placement" : ""}
 ${
   hasReference
-    ? "- Referans / ürün görseli olduğu için kompozisyon ürün odaklı olsun; ürün mekânda sergilenen premium bir ürün hissi versin"
-    : ""
+    ? "- Make the composition product-focused, as if a premium product visual will be placed or highlighted in the layout"
+    : "- Create a flexible premium promotional composition without a fixed product object"
 }
 `;
 
@@ -98,20 +105,25 @@ ${
       size: "1024x1024",
     });
 
-    const text = textResponse.output_text || "Metin üretilemedi.";
+    const text = textResponse.output_text || "Metin uretilemedi.";
     const imageBase64 = imageResponse.data?.[0]?.b64_json || null;
 
     return Response.json({
+      success: true,
       text,
       imageBase64,
       hasLogo,
       hasReference,
+      note: "Gorsel sadece zemin olarak uretildi. Metin sonradan yerlestirilmelidir.",
     });
   } catch (error) {
     console.error("Generate route error:", error);
 
     return Response.json(
-      { error: "Bir hata oluştu." },
+      {
+        success: false,
+        error: "Bir hata olustu.",
+      },
       { status: 500 }
     );
   }
