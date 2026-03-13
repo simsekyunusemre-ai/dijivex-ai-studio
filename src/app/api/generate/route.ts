@@ -118,59 +118,131 @@ Kurallar:
 
 function pickRandomVariant() {
   const variants = [
-    "editorial",
-    "campaign",
-    "luxury",
-    "minimal",
-    "catalog-social",
+    "splash-campaign",
+    "premium-showcase",
+    "editorial-social",
+    "promo-layout",
+    "clean-impact",
   ];
 
   return variants[Math.floor(Math.random() * variants.length)];
 }
 
-function getVariantInstruction(variant: string, sector: string) {
-  const sectorLower = sector.toLowerCase();
+function getSectorCreativeDirection(sector: string) {
+  const s = sector.toLowerCase();
 
-  const sectorStyle =
-    sectorLower.includes("mobilya")
-      ? "home furniture advertising"
-      : sectorLower.includes("bebek")
-      ? "baby product advertising"
-      : sectorLower.includes("kozmetik")
-      ? "beauty product advertising"
-      : sectorLower.includes("takı") || sectorLower.includes("taki")
-      ? "jewelry advertising"
-      : "premium product advertising";
+  if (s.includes("bebek") || s.includes("çocuk") || s.includes("cocuk")) {
+    return `
+baby product advertising scene,
+soft aqua palette,
+floating particles,
+fresh clean mood,
+gentle splash effects,
+playful premium campaign styling
+`;
+  }
 
+  if (s.includes("mobilya")) {
+    return `
+furniture advertising scene,
+decorative premium interior styling,
+architectural depth,
+warm textured surfaces,
+modern lifestyle campaign look,
+instagram premium furniture ad composition
+`;
+  }
+
+  if (s.includes("kozmetik")) {
+    return `
+beauty advertising scene,
+clean glossy premium setup,
+soft liquid reflections,
+floating highlights,
+high-end skincare campaign feeling
+`;
+  }
+
+  if (s.includes("takı") || s.includes("taki")) {
+    return `
+luxury jewelry advertising scene,
+elegant reflective surfaces,
+premium boutique styling,
+dramatic lighting,
+editorial campaign feeling
+`;
+  }
+
+  return `
+premium product advertising scene,
+social media campaign layout,
+decorative set design,
+high-end branded composition
+`;
+}
+
+function getVariantInstruction(variant: string) {
   const map: Record<string, string> = {
-    editorial: `
-Create an editorial style ${sectorStyle} scene.
-Use bold composition, stylish props, magazine-like visual hierarchy,
-premium lighting, visual storytelling, and high-end Instagram campaign feeling.
+    "splash-campaign": `
+Create a bold campaign visual with strong decorative effects,
+dynamic layers, premium energy, floating accents,
+and obvious ad composition zones.
 `,
-    campaign: `
-Create a high-conversion campaign style ${sectorStyle} scene.
-Use stronger promotional composition, layered props, ad energy,
-clear top text area and lower CTA area, and dynamic commercial styling.
+    "premium-showcase": `
+Create a refined premium showcase scene with elegant decor,
+luxury lighting, premium material feeling,
+and polished advertising composition.
 `,
-    luxury: `
-Create a luxury ${sectorStyle} scene.
-Use refined materials, premium lighting, elegant background styling,
-sophisticated decor, polished shadows, and a premium boutique campaign feeling.
+    "editorial-social": `
+Create a magazine-like editorial social post layout with strong hierarchy,
+stylish set design, visual rhythm,
+and premium instagram campaign feeling.
 `,
-    minimal: `
-Create a clean minimal ${sectorStyle} scene.
-Use fewer props, clean surfaces, spacious composition,
-strong center framing, subtle light gradients, and a premium Instagram ad look.
+    "promo-layout": `
+Create a promotional ad layout with clear title ribbon shape,
+bottom call-to-action panel shape,
+and campaign badge zones.
 `,
-    "catalog-social": `
-Create a hybrid catalog + social media ${sectorStyle} scene.
-Use clean product-first composition, marketing-friendly layout,
-balanced prop placement, commercial realism, and social-media-ready presentation.
+    "clean-impact": `
+Create a clean but striking social media ad composition
+with spacious layout, strong product focus,
+and modern campaign styling.
 `,
   };
 
-  return map[variant] || map["campaign"];
+  return map[variant] || map["promo-layout"];
+}
+
+function getDesignZoneInstruction(format: string) {
+  if (format === "portrait") {
+    return `
+Use vertical Instagram ad composition.
+Top area: one large decorative title panel or ribbon shape.
+Middle area: clean center-right or center zone for real product placement.
+Bottom area: one CTA panel shape and one small badge zone.
+Composition must feel like a designed ad post, not a plain room photo.
+`;
+  }
+
+  if (format === "landscape") {
+    return `
+Use horizontal advertising composition.
+Left or upper-left: large title banner zone.
+Center: open hero zone for real product placement.
+Lower-left: CTA panel shape.
+Right side: badge or mini-info shape.
+Composition must feel like a polished marketing banner.
+`;
+  }
+
+  return `
+Use square Instagram post composition.
+Top-left or top: decorative headline banner zone.
+Center: open hero zone for real product placement.
+Bottom-left: CTA panel shape.
+Bottom-right: badge/logo friendly zone.
+Composition must feel like a premium ad post.
+`;
 }
 
 function buildBackgroundPrompt(params: {
@@ -183,22 +255,17 @@ function buildBackgroundPrompt(params: {
 }) {
   const { brandName, sector, format, campaign, analysis, randomSeedHint } = params;
 
-  const formatTextMap: Record<string, string> = {
-    square: "instagram post, square composition",
-    portrait: "vertical instagram story / reel ad composition",
-    landscape: "horizontal banner advertising composition",
-  };
-
   const variant = pickRandomVariant();
-  const variantInstruction = getVariantInstruction(variant, sector);
+  const sectorDirection = getSectorCreativeDirection(sector);
+  const variantInstruction = getVariantInstruction(variant);
+  const designZones = getDesignZoneInstruction(format);
 
   return `
-Create a premium social media advertising background scene only.
+Create a premium instagram advertising poster background.
 
 Brand context: ${brandName}
+Campaign context: ${campaign}
 Sector: ${sector}
-Campaign: ${campaign}
-Format intent: ${formatTextMap[format] || "instagram ad composition"}
 
 Reference product info:
 - Product type: ${analysis.productType}
@@ -208,30 +275,45 @@ Reference product info:
 - Scene suggestion: ${analysis.sceneSuggestion}
 
 Creative variation hint: ${randomSeedHint}
-Creative design variant: ${variant}
+Creative style variant: ${variant}
 
+Sector direction:
+${sectorDirection}
+
+Variant direction:
 ${variantInstruction}
 
-Important composition rules:
-- Do NOT generate the product itself
-- Do NOT generate a duplicate of the product
-- Reserve the center area for placing the real uploaded product later
-- The center must be clean, visually strong, and suitable for compositing
-- Top-left or top area must support large headline placement
-- Lower-left or lower area must support CTA placement
-- This must feel like a real Instagram ad creative, not a plain room photo
-- Add campaign styling, ad atmosphere, premium depth, and visual drama
-- Background must be visually interesting and different on each generation
-- Avoid always repeating the same room layout
-- Use varied prop styling, framing and environment mood depending on the creative variant
+Design zone instructions:
+${designZones}
 
-Hard restrictions:
-- No text
+Critical composition rules:
+- The real uploaded product will be composited later by code
+- Do NOT generate the actual product
+- Do NOT generate a duplicate of the product
+- Do NOT place a fake product in the center
+- Keep the main center zone visually clean for product placement
+- Add decorative campaign elements, textures, lighting, props, effects and scene styling
+- Make this look like a designed Instagram ad, not a normal room photo
+- Include obvious visual shapes for title, subtitle, CTA and badge placement
+- These shapes can be ribbons, rounded panels, banners, capsules, label zones, poster blocks, promo cards
+- Those zones must look designed and premium
+- Use strong visual hierarchy and ad composition
+- Make the result visually interesting and commercially appealing
+- Avoid generic repeated living room layouts
+- Vary framing, prop density, texture, lighting and campaign mood
+
+Hard text restrictions:
+- No readable text
 - No letters
+- No words
+- No numbers
 - No typography
-- No logo
+- No headline text
+- No CTA text
+- No logo text
 - No watermark
-- No product replica in the center
+- No signage
+- If text-like areas are needed, render them as blank decorative shapes only
 `.trim();
 }
 
@@ -357,8 +439,8 @@ export async function POST(req: Request) {
       text,
       layout: {
         productPosition: "center",
-        textPosition: "top-left",
-        ctaPosition: "bottom-left",
+        textPosition: "designed-zones",
+        ctaPosition: "designed-zones",
       },
       meta: {
         brandName,
