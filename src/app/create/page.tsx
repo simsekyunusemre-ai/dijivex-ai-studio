@@ -40,8 +40,10 @@ export default function CreatePage() {
 
   const [logoPreview, setLogoPreview] = useState("");
   const [referencePreview, setReferencePreview] = useState("");
+  const [cutoutImage, setCutoutImage] = useState("");
 
   const [loading, setLoading] = useState(false);
+  const [removingBg, setRemovingBg] = useState(false);
   const [error, setError] = useState("");
   const [result, setResult] = useState<ApiResponse | null>(null);
 
@@ -50,16 +52,49 @@ export default function CreatePage() {
     return `data:image/png;base64,${result.background}`;
   }, [result]);
 
+  const posterAspect =
+    format === "portrait" ? "4 / 5" : format === "landscape" ? "16 / 9" : "1 / 1";
+
   function handleLogoChange(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0] || null;
     setLogoFile(file);
     setLogoPreview(file ? URL.createObjectURL(file) : "");
   }
 
-  function handleReferenceChange(e: ChangeEvent<HTMLInputElement>) {
+  async function handleReferenceChange(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0] || null;
+
     setReferenceImageFile(file);
     setReferencePreview(file ? URL.createObjectURL(file) : "");
+    setCutoutImage("");
+    setError("");
+
+    if (!file) return;
+
+    try {
+      setRemovingBg(true);
+
+      const bgForm = new FormData();
+      bgForm.append("image", file);
+
+      const response = await fetch("/api/remove-bg", {
+        method: "POST",
+        body: bgForm,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || "Arka plan kaldırılamadı.");
+      }
+
+      setCutoutImage(`data:${data.mimeType};base64,${data.image}`);
+    } catch (err) {
+      console.error(err);
+      setError(err instanceof Error ? err.message : "Arka plan kaldırılamadı.");
+    } finally {
+      setRemovingBg(false);
+    }
   }
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
@@ -77,8 +112,13 @@ export default function CreatePage() {
       formData.append("targetAudience", targetAudience);
       formData.append("campaign", campaign);
 
-      if (logoFile) formData.append("logo", logoFile);
-      if (referenceImageFile) formData.append("referenceImage", referenceImageFile);
+      if (logoFile) {
+        formData.append("logo", logoFile);
+      }
+
+      if (referenceImageFile) {
+        formData.append("referenceImage", referenceImageFile);
+      }
 
       const response = await fetch("/api/generate", {
         method: "POST",
@@ -98,9 +138,6 @@ export default function CreatePage() {
       setLoading(false);
     }
   }
-
-  const posterAspect =
-    format === "portrait" ? "4 / 5" : format === "landscape" ? "16 / 9" : "1 / 1";
 
   return (
     <>
@@ -126,12 +163,13 @@ export default function CreatePage() {
           }
 
           .poster-overlay-content {
-            max-width: 82% !important;
+            max-width: 84% !important;
             padding: 18px !important;
           }
 
           .poster-title {
             font-size: 22px !important;
+            line-height: 1.08 !important;
           }
 
           .poster-desc {
@@ -140,13 +178,18 @@ export default function CreatePage() {
           }
 
           .poster-product {
-            max-width: 62% !important;
-            max-height: 52% !important;
+            max-width: 66% !important;
+            max-height: 54% !important;
           }
 
           .poster-logo {
             width: 64px !important;
             height: 64px !important;
+          }
+
+          .poster-cta {
+            font-size: 12px !important;
+            padding: 10px 14px !important;
           }
         }
       `}</style>
@@ -157,8 +200,8 @@ export default function CreatePage() {
             <div style={styles.badge}>Dijivex AI Studio</div>
             <h1 style={styles.title}>AI Reklam Kreatifi Oluştur</h1>
             <p style={styles.subtitle}>
-              Marka bilgilerini gir, logo ve ürün görselini yükle. Sistem senin için
-              sahne, reklam metni ve tasarımlı önizleme oluştursun.
+              Referans ürünü bozmadan, merkezde konumlandırılmış reklam sahnesi oluştur.
+              Yazılar tasarımlı şekilde görsel üstünde yer alır.
             </p>
           </div>
         </div>
@@ -166,7 +209,7 @@ export default function CreatePage() {
         <div className="create-grid-fallback" style={styles.grid}>
           <section style={styles.card}>
             <h2 style={styles.cardTitle}>Brief Formu</h2>
-            <p style={styles.cardText}>Tüm alanları doldur ve kreatifi oluştur.</p>
+            <p style={styles.cardText}>Ürünü yükle, sistemi çalıştır, yeni tasarım al.</p>
 
             <form onSubmit={handleSubmit}>
               <div style={styles.field}>
@@ -174,7 +217,7 @@ export default function CreatePage() {
                 <input
                   value={brandName}
                   onChange={(e) => setBrandName(e.target.value)}
-                  placeholder="Örn: Vira Home"
+                  placeholder="Örn: Meg Baby"
                   required
                   style={styles.input}
                 />
@@ -185,7 +228,7 @@ export default function CreatePage() {
                 <input
                   value={sector}
                   onChange={(e) => setSector(e.target.value)}
-                  placeholder="Örn: Mobilya, Takı, Kozmetik"
+                  placeholder="Örn: Bebek, Mobilya, Kozmetik"
                   required
                   style={styles.input}
                 />
@@ -196,7 +239,7 @@ export default function CreatePage() {
                 <input
                   value={slogan}
                   onChange={(e) => setSlogan(e.target.value)}
-                  placeholder="Örn: Yeni sezon ürünleri"
+                  placeholder="Örn: Ekonomik ve Sağlıklı Seçim"
                   style={styles.input}
                 />
               </div>
@@ -206,7 +249,7 @@ export default function CreatePage() {
                 <input
                   value={targetAudience}
                   onChange={(e) => setTargetAudience(e.target.value)}
-                  placeholder="Örn: 25-45 yaş"
+                  placeholder="Örn: Anneler, genç aileler"
                   required
                   style={styles.input}
                 />
@@ -217,7 +260,7 @@ export default function CreatePage() {
                 <textarea
                   value={campaign}
                   onChange={(e) => setCampaign(e.target.value)}
-                  placeholder="Örn: Yeni sezonda özel indirim fırsatı"
+                  placeholder="Örn: Yeni sezon kampanyası ve avantajlı fiyatlar"
                   required
                   style={styles.textarea}
                 />
@@ -270,7 +313,7 @@ export default function CreatePage() {
                     ) : (
                       <div style={styles.uploadPlaceholder}>
                         <div style={styles.uploadTitle}>Ürün görseli seç</div>
-                        <div style={styles.uploadSub}>Reklamda merkezde kullanılacak</div>
+                        <div style={styles.uploadSub}>Merkezde kullanılacak</div>
                       </div>
                     )}
                     <input
@@ -284,13 +327,31 @@ export default function CreatePage() {
                   <div style={styles.fileName}>
                     {referenceImageFile?.name || "Dosya seçilmedi"}
                   </div>
+
+                  {removingBg ? (
+                    <div style={styles.infoBlue}>Arka plan kaldırılıyor...</div>
+                  ) : cutoutImage ? (
+                    <div style={styles.infoGreen}>Ürün şeffaf PNG olarak hazır.</div>
+                  ) : null}
                 </div>
               </div>
 
               {error ? <div style={styles.errorBox}>{error}</div> : null}
 
-              <button type="submit" disabled={loading} style={styles.submitBtn}>
-                {loading ? "Kreatif Oluşturuluyor..." : "Kreatif Oluştur"}
+              <button
+                type="submit"
+                disabled={loading || removingBg}
+                style={{
+                  ...styles.submitBtn,
+                  opacity: loading || removingBg ? 0.7 : 1,
+                  cursor: loading || removingBg ? "not-allowed" : "pointer",
+                }}
+              >
+                {removingBg
+                  ? "Ürün Hazırlanıyor..."
+                  : loading
+                  ? "Kreatif Oluşturuluyor..."
+                  : "Kreatif Oluştur"}
               </button>
             </form>
           </section>
@@ -298,14 +359,14 @@ export default function CreatePage() {
           <section style={styles.card}>
             <h2 style={styles.cardTitle}>Oluşturulan Sonuç</h2>
             <p style={styles.cardText}>
-              Background AI tarafından, ürün ise gerçek yüklediğin görsel ile oluşturulur.
+              AI sadece sahneyi üretir. Yüklediğin gerçek ürün, bozulmadan merkeze yerleşir.
             </p>
 
             {!loading && !result && (
               <div style={styles.emptyBox}>
                 <div style={styles.emptyTitle}>Henüz kreatif oluşturulmadı</div>
                 <div style={styles.emptySub}>
-                  Soldaki formu doldurup oluştur butonuna bas.
+                  Sol taraftan ürününü yükle ve oluştur butonuna bas.
                 </div>
               </div>
             )}
@@ -313,9 +374,9 @@ export default function CreatePage() {
             {loading && (
               <div style={styles.emptyBox}>
                 <div style={styles.loader} />
-                <div style={styles.emptyTitle}>Sahne hazırlanıyor...</div>
+                <div style={styles.emptyTitle}>Yeni tasarım hazırlanıyor...</div>
                 <div style={styles.emptySub}>
-                  Ürün korunuyor, background ve overlay hazırlanıyor.
+                  Sahne oluşturuluyor, ürün korunuyor, yazılar yerleştiriliyor.
                 </div>
               </div>
             )}
@@ -330,50 +391,37 @@ export default function CreatePage() {
                       style={styles.posterBackground}
                     />
 
-                    {referencePreview ? (
+                    {(cutoutImage || referencePreview) && (
                       <div style={styles.productLayer}>
                         <img
-                          src={referencePreview}
+                          src={cutoutImage || referencePreview}
                           alt="Gerçek ürün"
                           className="poster-product"
                           style={styles.productImage}
                         />
                       </div>
-                    ) : null}
+                    )}
 
                     <div style={styles.topGradient} />
                     <div style={styles.bottomGradient} />
 
-                    <div
-                      className="poster-overlay-content"
-                      style={styles.overlayContent}
-                    >
-                      <div
-                        className="poster-title"
-                        style={styles.overlayTitle}
-                      >
+                    <div className="poster-overlay-content" style={styles.overlayContent}>
+                      <div className="poster-title" style={styles.overlayTitle}>
                         {result.text?.title || slogan || brandName}
                       </div>
 
-                      {(slogan || result.text?.description) && (
-                        <div
-                          className="poster-desc"
-                          style={styles.overlayDesc}
-                        >
-                          {slogan
-                            ? slogan
-                            : result.text?.description || ""}
-                        </div>
-                      )}
+                      <div className="poster-desc" style={styles.overlayDesc}>
+                        {slogan || result.text?.description || ""}
+                      </div>
 
-                      <div style={styles.featureRow}>
-                        <div style={styles.featureBadge}>✔ Premium Sunum</div>
-                        <div style={styles.featureBadge}>✔ Yeni Tasarım</div>
+                      <div style={styles.badgeRow}>
+                        <div style={styles.ribbonBadge}>Yeni Tasarım</div>
+                        <div style={styles.ribbonBadge}>Merkez Ürün Sunumu</div>
                       </div>
                     </div>
 
                     <div style={styles.bottomLeftArea}>
-                      <div style={styles.ctaPill}>
+                      <div className="poster-cta" style={styles.ctaPill}>
                         {result.text?.cta || "Hemen İncele"}
                       </div>
                     </div>
@@ -396,7 +444,7 @@ export default function CreatePage() {
                     )}
                   </div>
                 ) : (
-                  <div style={styles.errorBox}>Background üretildi bilgisi dönmedi.</div>
+                  <div style={styles.errorBox}>Background verisi dönmedi.</div>
                 )}
 
                 <div style={styles.metaGrid}>
@@ -447,7 +495,7 @@ const styles: Record<string, React.CSSProperties> = {
     padding: "6px 10px",
     borderRadius: "999px",
     fontSize: "12px",
-    fontWeight: 600,
+    fontWeight: 700,
     marginBottom: "12px",
   },
   title: {
@@ -493,7 +541,7 @@ const styles: Record<string, React.CSSProperties> = {
     display: "block",
     marginBottom: "8px",
     fontSize: "14px",
-    fontWeight: 600,
+    fontWeight: 700,
     color: "#111827",
   },
   input: {
@@ -546,7 +594,7 @@ const styles: Record<string, React.CSSProperties> = {
     padding: "16px",
   },
   uploadTitle: {
-    fontWeight: 700,
+    fontWeight: 800,
     color: "#111827",
     marginBottom: "6px",
   },
@@ -566,6 +614,18 @@ const styles: Record<string, React.CSSProperties> = {
     color: "#6b7280",
     wordBreak: "break-word",
   },
+  infoBlue: {
+    marginTop: "8px",
+    fontSize: "12px",
+    color: "#2563eb",
+    fontWeight: 700,
+  },
+  infoGreen: {
+    marginTop: "8px",
+    fontSize: "12px",
+    color: "#16a34a",
+    fontWeight: 700,
+  },
   submitBtn: {
     width: "100%",
     padding: "14px 18px",
@@ -573,9 +633,8 @@ const styles: Record<string, React.CSSProperties> = {
     border: "none",
     background: "#111827",
     color: "#ffffff",
-    fontWeight: 700,
+    fontWeight: 800,
     fontSize: "15px",
-    cursor: "pointer",
   },
   errorBox: {
     background: "#fee2e2",
@@ -600,7 +659,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   emptyTitle: {
     fontSize: "18px",
-    fontWeight: 700,
+    fontWeight: 800,
     color: "#111827",
     marginBottom: "8px",
   },
@@ -648,13 +707,13 @@ const styles: Record<string, React.CSSProperties> = {
     maxWidth: "56%",
     maxHeight: "58%",
     objectFit: "contain",
-    filter: "drop-shadow(0 16px 32px rgba(0,0,0,0.28))",
+    filter: "drop-shadow(0 18px 38px rgba(0,0,0,0.30))",
   },
   topGradient: {
     position: "absolute",
     inset: 0,
     background:
-      "linear-gradient(180deg, rgba(0,0,0,0.52) 0%, rgba(0,0,0,0.12) 38%, rgba(0,0,0,0) 55%)",
+      "linear-gradient(180deg, rgba(0,0,0,0.56) 0%, rgba(0,0,0,0.16) 36%, rgba(0,0,0,0) 56%)",
     zIndex: 4,
     pointerEvents: "none",
   },
@@ -662,7 +721,7 @@ const styles: Record<string, React.CSSProperties> = {
     position: "absolute",
     inset: 0,
     background:
-      "linear-gradient(180deg, rgba(0,0,0,0) 45%, rgba(0,0,0,0.16) 65%, rgba(0,0,0,0.68) 100%)",
+      "linear-gradient(180deg, rgba(0,0,0,0) 45%, rgba(0,0,0,0.18) 65%, rgba(0,0,0,0.72) 100%)",
     zIndex: 4,
     pointerEvents: "none",
   },
@@ -677,7 +736,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   overlayTitle: {
     fontSize: "34px",
-    lineHeight: 1.05,
+    lineHeight: 1.04,
     fontWeight: 900,
     letterSpacing: "-0.02em",
     marginBottom: "10px",
@@ -690,19 +749,19 @@ const styles: Record<string, React.CSSProperties> = {
     textShadow: "0 2px 12px rgba(0,0,0,0.35)",
     marginBottom: "14px",
   },
-  featureRow: {
+  badgeRow: {
     display: "flex",
     flexWrap: "wrap",
     gap: "8px",
   },
-  featureBadge: {
+  ribbonBadge: {
     background: "rgba(255,255,255,0.16)",
     border: "1px solid rgba(255,255,255,0.26)",
     color: "#fff",
     padding: "8px 12px",
     borderRadius: "999px",
     fontSize: "12px",
-    fontWeight: 700,
+    fontWeight: 800,
     backdropFilter: "blur(4px)",
   },
   bottomLeftArea: {
@@ -716,7 +775,7 @@ const styles: Record<string, React.CSSProperties> = {
     color: "#111827",
     padding: "12px 18px",
     borderRadius: "999px",
-    fontWeight: 800,
+    fontWeight: 900,
     fontSize: "14px",
     boxShadow: "0 10px 20px rgba(0,0,0,0.18)",
   },
@@ -772,7 +831,7 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: "12px",
     color: "#6b7280",
     marginBottom: "6px",
-    fontWeight: 700,
+    fontWeight: 800,
     textTransform: "uppercase",
     letterSpacing: "0.04em",
   },
