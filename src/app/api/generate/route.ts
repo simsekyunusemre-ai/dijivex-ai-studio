@@ -17,6 +17,7 @@ type ProductAnalysis = {
   materials: string[];
   usageArea: string;
   sceneSuggestion: string;
+  productLook: string;
 };
 
 function fileToBase64(buffer: ArrayBuffer) {
@@ -34,6 +35,27 @@ function safeJsonParse<T>(text: string): T {
     console.error("JSON parse error:", text);
     throw new Error("AI JSON parse edilemedi.");
   }
+}
+
+function getFormatSettings(format: string) {
+  if (format === "portrait") {
+    return {
+      size: "1024x1536" as const,
+      formatText: "vertical instagram story / reel ad",
+    };
+  }
+
+  if (format === "landscape") {
+    return {
+      size: "1536x1024" as const,
+      formatText: "horizontal banner ad",
+    };
+  }
+
+  return {
+    size: "1024x1024" as const,
+    formatText: "square instagram post",
+  };
 }
 
 async function analyzeProduct(imageBase64: string): Promise<ProductAnalysis> {
@@ -54,11 +76,13 @@ Format:
   "colors": [],
   "materials": [],
   "usageArea": "",
-  "sceneSuggestion": ""
+  "sceneSuggestion": "",
+  "productLook": ""
 }
 
 Kurallar:
 - kısa ve net yaz
+- ürünün reklam görselinde nasıl görünmesi gerektiğini productLook alanında tarif et
 - JSON dışında hiçbir şey yazma
             `.trim(),
           },
@@ -106,8 +130,8 @@ Format:
 Kurallar:
 - Türkçe yaz
 - başlık kısa ve güçlü olsun
-- açıklama kısa ve reklam diliyle olsun
-- CTA net olsun
+- açıklama reklam diliyle yazılsın
+- CTA kısa ve net olsun
 - hashtag tek string olsun
 - JSON dışında hiçbir şey yazma
     `.trim(),
@@ -118,183 +142,202 @@ Kurallar:
 
 function pickRandomVariant() {
   const variants = [
-    "splash-campaign",
-    "premium-showcase",
-    "editorial-social",
-    "promo-layout",
-    "clean-impact",
+    "campaign",
+    "premium",
+    "editorial",
+    "splash",
+    "high-conversion",
   ];
 
   return variants[Math.floor(Math.random() * variants.length)];
 }
 
-function getSectorCreativeDirection(sector: string) {
+function getSectorDirection(sector: string) {
   const s = sector.toLowerCase();
 
   if (s.includes("bebek") || s.includes("çocuk") || s.includes("cocuk") || s.includes("bez")) {
     return `
-baby diaper advertising scene,
-soft aqua and pastel tones,
+baby diaper advertising,
 fresh clean mood,
-premium splash effects,
+soft pastel colors,
+water splash effects,
 floating decorative particles,
-playful but premium campaign styling,
-instagram ad energy
+cute premium campaign style,
+mother and baby friendly look
 `;
   }
 
   if (s.includes("mobilya")) {
     return `
-furniture advertising scene,
-modern premium interior styling,
-architectural depth,
-warm textured surfaces,
-decorative premium props,
-high-end instagram furniture campaign look
+furniture advertising,
+premium interior design mood,
+decorative home styling,
+warm texture,
+modern elegant campaign composition
 `;
   }
 
   if (s.includes("kozmetik")) {
     return `
-beauty advertising scene,
-clean glossy premium setup,
-soft liquid reflections,
-floating highlights,
-high-end skincare campaign styling
+beauty advertising,
+clean glossy beauty scene,
+premium skincare campaign,
+soft reflections,
+luxury product styling
 `;
   }
 
   if (s.includes("takı") || s.includes("taki")) {
     return `
-luxury jewelry advertising scene,
-elegant reflective surfaces,
-premium boutique styling,
-dramatic lighting,
-editorial campaign feeling
+jewelry advertising,
+luxury boutique mood,
+editorial campaign style,
+glossy reflective premium setup
 `;
   }
 
   return `
-premium product advertising scene,
-social media campaign layout,
-decorative set design,
-high-end branded composition
+premium social media advertising,
+high-end campaign composition,
+decorative commercial design
 `;
 }
 
-function getVariantInstruction(variant: string) {
+function getVariantDirection(variant: string) {
   const map: Record<string, string> = {
-    "splash-campaign": `
-Create a bold campaign visual with strong decorative effects,
-dynamic layers, premium energy, floating accents and obvious ad composition zones.
+    campaign: `
+strong campaign feel,
+big bold promo design,
+attention grabbing composition,
+high energy ad layout
 `,
-    "premium-showcase": `
-Create a refined premium showcase scene with elegant decor,
-luxury lighting, premium material feeling and polished advertising composition.
+    premium: `
+luxury premium design,
+refined composition,
+polished commercial poster style
 `,
-    "editorial-social": `
-Create a magazine-like editorial social post layout with strong hierarchy,
-stylish set design, visual rhythm and premium campaign feeling.
+    editorial: `
+editorial social media ad,
+magazine-like visual hierarchy,
+stylish designed poster look
 `,
-    "promo-layout": `
-Create a promotional ad layout with decorative banner zones,
-cta box zones and campaign badge areas.
+    splash: `
+dynamic visual effects,
+liquid or particle effects,
+dramatic ad styling,
+eye-catching modern composition
 `,
-    "clean-impact": `
-Create a clean but striking social media ad composition
-with spacious layout, strong product focus and modern campaign styling.
+    "high-conversion": `
+conversion-focused ad design,
+clear focal point,
+strong promotional structure,
+scroll-stopping instagram visual
 `,
   };
 
-  return map[variant] || map["promo-layout"];
+  return map[variant] || map.campaign;
 }
 
-function getFormatSettings(format: string) {
-  if (format === "portrait") {
-    return {
-      size: "1024x1536" as const,
-      formatText: "vertical instagram story / reel ad composition",
-    };
-  }
-
-  if (format === "landscape") {
-    return {
-      size: "1536x1024" as const,
-      formatText: "horizontal banner advertising composition",
-    };
-  }
-
-  return {
-    size: "1024x1024" as const,
-    formatText: "square instagram post composition",
-  };
-}
-
-function buildBackgroundPrompt(params: {
+function buildFullPosterPrompt(params: {
   brandName: string;
   sector: string;
   format: string;
   campaign: string;
+  slogan: string;
+  customVisualRequest: string;
   analysis: ProductAnalysis;
+  copy: GeneratedText;
   randomSeedHint: string;
 }) {
-  const { brandName, sector, format, campaign, analysis, randomSeedHint } = params;
+  const {
+    brandName,
+    sector,
+    format,
+    campaign,
+    slogan,
+    customVisualRequest,
+    analysis,
+    copy,
+    randomSeedHint,
+  } = params;
 
   const variant = pickRandomVariant();
-  const sectorDirection = getSectorCreativeDirection(sector);
-  const variantInstruction = getVariantInstruction(variant);
-  const formatSettings = getFormatSettings(format);
+  const formatText = getFormatSettings(format).formatText;
+  const sectorDirection = getSectorDirection(sector);
+  const variantDirection = getVariantDirection(variant);
+
+  const customRequestText = customVisualRequest
+    ? `
+User custom visual request:
+${customVisualRequest}
+`
+    : `
+User custom visual request:
+none
+`;
 
   return `
-Create a premium social media advertising poster background.
+Create a complete professional social media advertising poster.
 
-Brand context: ${brandName}
-Campaign context: ${campaign}
-Format intent: ${formatSettings.formatText}
+Brand: ${brandName}
+Sector: ${sector}
+Format: ${formatText}
+Campaign: ${campaign}
+Slogan: ${slogan}
 
-Reference product info:
+Reference product description:
 - Product type: ${analysis.productType}
 - Colors: ${analysis.colors.join(", ")}
 - Materials: ${analysis.materials.join(", ")}
 - Usage area: ${analysis.usageArea}
-- Scene suggestion: ${analysis.sceneSuggestion}
+- Suggested scene: ${analysis.sceneSuggestion}
+- Product look: ${analysis.productLook}
 
-Creative variation hint: ${randomSeedHint}
-Creative style variant: ${variant}
+Ad copy to include in the poster:
+- Main headline: ${copy.title}
+- Supporting text: ${copy.description}
+- CTA text: ${copy.cta}
+- Hashtag text: ${copy.hashtags}
+
+Creative variant:
+${variant}
+
+Creative variation hint:
+${randomSeedHint}
 
 Sector direction:
 ${sectorDirection}
 
 Variant direction:
-${variantInstruction}
+${variantDirection}
 
-Design goals:
-- create a visually rich instagram ad scene
-- include decorative banner-like shapes, label zones, badge areas, CTA-like panel zones
-- create visual hierarchy like a real ad creative
-- use premium props, textures, effects, lighting and mood
-- make the result feel designed, not like a plain room photo
-- leave a strong central hero zone for compositing the real uploaded product later
-- the center must stay usable for a real product PNG
-- use eye-catching campaign composition and commercial styling
-- vary props, layout and framing every generation
+${customRequestText}
 
-Hard restrictions:
-- do not generate the actual product
-- do not generate a duplicate of the product
-- do not place a fake product in the center
-- no readable text
-- no letters
-- no words
-- no numbers
-- no typography
+Main goal:
+Create a full instagram-ready ad poster with everything designed inside the image:
+- real advertising composition
+- the product as hero object
+- decorative effects
+- strong campaign feeling
+- professional text layout
+- CTA area
+- badge or campaign label
+- visually polished branded post
+
+Critical rules:
+- the product should closely resemble the uploaded reference product
+- product should be the main hero and centered or strongly featured
+- create an attention-grabbing instagram ad, not a plain photo
+- text should be large, intentional, poster-like and readable
+- use the provided ad copy naturally inside the design
+- create premium commercial quality
+- include decorative design elements that match the sector
+- keep layout visually balanced and realistic for social media marketing
 - no watermark
-- no logo text
-- if text-like areas are needed, render them as blank decorative design shapes only
 `.trim();
 }
 
-async function generateOpenAIBackground(prompt: string, format: string): Promise<string> {
+async function generatePoster(prompt: string, format: string): Promise<string> {
   const formatSettings = getFormatSettings(format);
 
   const imageResponse = await openai.images.generate({
@@ -324,22 +367,42 @@ export async function POST(req: Request) {
     const format = String(formData.get("format") || "square").trim();
     const targetAudience = String(formData.get("targetAudience") || "").trim();
     const campaign = String(formData.get("campaign") || "").trim();
+
+    const customVisualRequest = String(
+      formData.get("customVisualRequest") ||
+        formData.get("backgroundRequest") ||
+        formData.get("visualRequest") ||
+        ""
+    ).trim();
+
     const referenceImage = formData.get("referenceImage") as File | null;
 
     if (!brandName) {
-      return Response.json({ success: false, error: "Marka adı zorunlu." }, { status: 400 });
+      return Response.json(
+        { success: false, error: "Marka adı zorunlu." },
+        { status: 400 }
+      );
     }
 
     if (!sector) {
-      return Response.json({ success: false, error: "Sektör zorunlu." }, { status: 400 });
+      return Response.json(
+        { success: false, error: "Sektör zorunlu." },
+        { status: 400 }
+      );
     }
 
     if (!targetAudience) {
-      return Response.json({ success: false, error: "Hedef kitle zorunlu." }, { status: 400 });
+      return Response.json(
+        { success: false, error: "Hedef kitle zorunlu." },
+        { status: 400 }
+      );
     }
 
     if (!campaign) {
-      return Response.json({ success: false, error: "Kampanya mesajı zorunlu." }, { status: 400 });
+      return Response.json(
+        { success: false, error: "Kampanya mesajı zorunlu." },
+        { status: 400 }
+      );
     }
 
     if (!referenceImage) {
@@ -364,31 +427,30 @@ export async function POST(req: Request) {
 
     const randomSeedHint = `${Date.now()}-${Math.floor(Math.random() * 999999)}`;
 
-    const backgroundPrompt = buildBackgroundPrompt({
+    const fullPosterPrompt = buildFullPosterPrompt({
       brandName,
       sector,
       format,
       campaign,
+      slogan,
+      customVisualRequest,
       analysis,
+      copy: text,
       randomSeedHint,
     });
 
-    const backgroundBase64 = await generateOpenAIBackground(backgroundPrompt, format);
+    const imageBase64 = await generatePoster(fullPosterPrompt, format);
 
     return Response.json({
       success: true,
-      background: backgroundBase64,
+      image: imageBase64,
       text,
-      layout: {
-        productPosition: "center",
-        textPosition: "designed-zones",
-        ctaPosition: "designed-zones",
-      },
       meta: {
         brandName,
         sector,
         format,
         slogan,
+        customVisualRequest,
       },
       analysis,
     });
@@ -398,7 +460,10 @@ export async function POST(req: Request) {
     return Response.json(
       {
         success: false,
-        error: error instanceof Error ? error.message : "Sahne oluşturulurken hata oluştu.",
+        error:
+          error instanceof Error
+            ? error.message
+            : "Reklam postu oluşturulurken hata oluştu.",
       },
       { status: 500 }
     );
