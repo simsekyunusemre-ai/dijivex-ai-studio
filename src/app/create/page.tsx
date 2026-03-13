@@ -11,23 +11,25 @@ type GeneratedText = {
 
 type ApiResponse = {
   success: boolean;
-  background?: string;
+  image?: string;
   text?: GeneratedText;
   error?: string;
-  layout?: {
-    productPosition: string;
-    textPosition: string;
-    ctaPosition: string;
-  };
   meta?: {
     brandName: string;
     sector: string;
     format: string;
     slogan?: string;
+    customVisualRequest?: string;
+  };
+  analysis?: {
+    productType?: string;
+    colors?: string[];
+    materials?: string[];
+    usageArea?: string;
+    sceneSuggestion?: string;
+    productLook?: string;
   };
 };
-
-type TemplateType = "campaign" | "premium" | "editorial";
 
 export default function CreatePage() {
   const [brandName, setBrandName] = useState("");
@@ -36,42 +38,22 @@ export default function CreatePage() {
   const [format, setFormat] = useState("square");
   const [targetAudience, setTargetAudience] = useState("");
   const [campaign, setCampaign] = useState("");
+  const [customVisualRequest, setCustomVisualRequest] = useState("");
 
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [referenceImageFile, setReferenceImageFile] = useState<File | null>(null);
 
   const [logoPreview, setLogoPreview] = useState("");
   const [referencePreview, setReferencePreview] = useState("");
-  const [cutoutImage, setCutoutImage] = useState("");
 
   const [loading, setLoading] = useState(false);
-  const [removingBg, setRemovingBg] = useState(false);
   const [error, setError] = useState("");
   const [result, setResult] = useState<ApiResponse | null>(null);
-  const [templateVariant, setTemplateVariant] = useState<TemplateType>("campaign");
 
-  const backgroundSrc = useMemo(() => {
-    if (!result?.background) return "";
-    return `data:image/png;base64,${result.background}`;
+  const generatedImageSrc = useMemo(() => {
+    if (!result?.image) return "";
+    return `data:image/png;base64,${result.image}`;
   }, [result]);
-
-  const posterAspect =
-    format === "portrait" ? "4 / 5" : format === "landscape" ? "16 / 9" : "1 / 1";
-
-  const safeTitle = result?.text?.title || slogan || brandName || "Yeni Koleksiyon";
-  const safeDesc =
-    slogan ||
-    result?.text?.description ||
-    campaign ||
-    "Şimdi keşfedin, yeni sezon fırsatlarını kaçırmayın.";
-  const safeCta = result?.text?.cta || "Hemen İncele";
-  const safeBrand = result?.meta?.brandName || brandName || "Marka";
-  const safeSector = (result?.meta?.sector || sector || "").toLowerCase();
-
-  function pickTemplate(): TemplateType {
-    const variants: TemplateType[] = ["campaign", "premium", "editorial"];
-    return variants[Math.floor(Math.random() * variants.length)];
-  }
 
   function handleLogoChange(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0] || null;
@@ -79,40 +61,10 @@ export default function CreatePage() {
     setLogoPreview(file ? URL.createObjectURL(file) : "");
   }
 
-  async function handleReferenceChange(e: ChangeEvent<HTMLInputElement>) {
+  function handleReferenceChange(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0] || null;
-
     setReferenceImageFile(file);
     setReferencePreview(file ? URL.createObjectURL(file) : "");
-    setCutoutImage("");
-    setError("");
-
-    if (!file) return;
-
-    try {
-      setRemovingBg(true);
-
-      const bgForm = new FormData();
-      bgForm.append("image", file);
-
-      const response = await fetch("/api/remove-bg", {
-        method: "POST",
-        body: bgForm,
-      });
-
-      const data = await response.json();
-
-      if (!response.ok || !data.success) {
-        throw new Error(data.error || "Arka plan kaldırılamadı.");
-      }
-
-      setCutoutImage(`data:${data.mimeType};base64,${data.image}`);
-    } catch (err) {
-      console.error(err);
-      setError(err instanceof Error ? err.message : "Arka plan kaldırılamadı.");
-    } finally {
-      setRemovingBg(false);
-    }
   }
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
@@ -129,9 +81,15 @@ export default function CreatePage() {
       formData.append("format", format);
       formData.append("targetAudience", targetAudience);
       formData.append("campaign", campaign);
+      formData.append("customVisualRequest", customVisualRequest);
 
-      if (logoFile) formData.append("logo", logoFile);
-      if (referenceImageFile) formData.append("referenceImage", referenceImageFile);
+      if (logoFile) {
+        formData.append("logo", logoFile);
+      }
+
+      if (referenceImageFile) {
+        formData.append("referenceImage", referenceImageFile);
+      }
 
       const response = await fetch("/api/generate", {
         method: "POST",
@@ -144,7 +102,6 @@ export default function CreatePage() {
         throw new Error(data.error || "Bir hata oluştu.");
       }
 
-      setTemplateVariant(pickTemplate());
       setResult(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Bir hata oluştu.");
@@ -152,12 +109,6 @@ export default function CreatePage() {
       setLoading(false);
     }
   }
-
-  const showSoftEffects =
-    safeSector.includes("bebek") ||
-    safeSector.includes("çocuk") ||
-    safeSector.includes("cocuk") ||
-    safeSector.includes("kozmetik");
 
   return (
     <>
@@ -171,16 +122,6 @@ export default function CreatePage() {
           }
         }
 
-        @keyframes floatSoft {
-          0%,
-          100% {
-            transform: translateY(0px);
-          }
-          50% {
-            transform: translateY(-10px);
-          }
-        }
-
         @media (max-width: 1180px) {
           .create-grid-fallback {
             grid-template-columns: 1fr !important;
@@ -191,31 +132,6 @@ export default function CreatePage() {
           .create-upload-grid-fallback {
             grid-template-columns: 1fr !important;
           }
-
-          .poster-title-v2 {
-            font-size: 24px !important;
-            line-height: 1.05 !important;
-          }
-
-          .poster-desc-v2 {
-            font-size: 13px !important;
-            line-height: 1.45 !important;
-          }
-
-          .poster-product-v2 {
-            max-width: 74% !important;
-            max-height: 44% !important;
-          }
-
-          .poster-logo-v2 {
-            width: 58px !important;
-            height: 58px !important;
-          }
-
-          .poster-cta-v2 {
-            font-size: 12px !important;
-            padding: 10px 14px !important;
-          }
         }
       `}</style>
 
@@ -225,8 +141,8 @@ export default function CreatePage() {
             <div style={styles.badge}>Dijivex AI Studio</div>
             <h1 style={styles.title}>AI Reklam Kreatifi Oluştur</h1>
             <p style={styles.subtitle}>
-              Arka plan AI ile gelir, ürün aynen korunur, yazılar ve reklam düzeni
-              profesyonel tasarım katmanı ile eklenir.
+              Ürünü yükle, kampanya bilgisini gir, istersen sahne isteğini yaz.
+              Sistem tam reklam postu oluştursun.
             </p>
           </div>
         </div>
@@ -234,7 +150,9 @@ export default function CreatePage() {
         <div className="create-grid-fallback" style={styles.grid}>
           <section style={styles.card}>
             <h2 style={styles.cardTitle}>Brief Formu</h2>
-            <p style={styles.cardText}>Her oluşturmada yeni sahne ve yeni post düzeni.</p>
+            <p style={styles.cardText}>
+              Müşteri isteğini yazabilirsin. Boş bırakırsan AI kendi reklam kurgusunu üretir.
+            </p>
 
             <form onSubmit={handleSubmit}>
               <div style={styles.field}>
@@ -253,7 +171,7 @@ export default function CreatePage() {
                 <input
                   value={sector}
                   onChange={(e) => setSector(e.target.value)}
-                  placeholder="Örn: Bebek, Mobilya, Kozmetik"
+                  placeholder="Örn: Bebek ürünleri, Mobilya, Kozmetik"
                   required
                   style={styles.input}
                 />
@@ -264,7 +182,7 @@ export default function CreatePage() {
                 <input
                   value={slogan}
                   onChange={(e) => setSlogan(e.target.value)}
-                  placeholder="Örn: Ekonomik ve Sağlıklı Seçim"
+                  placeholder="Örn: Yıkanabilir bebek bezi"
                   style={styles.input}
                 />
               </div>
@@ -274,7 +192,7 @@ export default function CreatePage() {
                 <input
                   value={targetAudience}
                   onChange={(e) => setTargetAudience(e.target.value)}
-                  placeholder="Örn: Anneler, yeni evliler, aileler"
+                  placeholder="Örn: Anneler, aileler, yeni evliler"
                   required
                   style={styles.input}
                 />
@@ -285,9 +203,19 @@ export default function CreatePage() {
                 <textarea
                   value={campaign}
                   onChange={(e) => setCampaign(e.target.value)}
-                  placeholder="Örn: Yeni sezon kampanyası ve avantajlı fiyatlar"
+                  placeholder="Örn: Bebek bezinde büyük tasarruf"
                   required
                   style={styles.textarea}
+                />
+              </div>
+
+              <div style={styles.field}>
+                <label style={styles.label}>Müşteri Görsel İsteği (Opsiyonel)</label>
+                <textarea
+                  value={customVisualRequest}
+                  onChange={(e) => setCustomVisualRequest(e.target.value)}
+                  placeholder="Örn: Su efekti olsun, kelebekler uçuşsun, premium ve dikkat çekici bir instagram postu olsun, pastel tonlar kullanılsın"
+                  style={styles.textareaSmall}
                 />
               </div>
 
@@ -338,7 +266,7 @@ export default function CreatePage() {
                     ) : (
                       <div style={styles.uploadPlaceholder}>
                         <div style={styles.uploadTitle}>Ürün görseli seç</div>
-                        <div style={styles.uploadSub}>Merkezde aynen kullanılacak</div>
+                        <div style={styles.uploadSub}>AI ürünü buna göre çizer</div>
                       </div>
                     )}
                     <input
@@ -352,12 +280,6 @@ export default function CreatePage() {
                   <div style={styles.fileName}>
                     {referenceImageFile?.name || "Dosya seçilmedi"}
                   </div>
-
-                  {removingBg ? (
-                    <div style={styles.infoBlue}>Arka plan kaldırılıyor...</div>
-                  ) : cutoutImage ? (
-                    <div style={styles.infoGreen}>Ürün şeffaf PNG olarak hazır.</div>
-                  ) : null}
                 </div>
               </div>
 
@@ -365,18 +287,14 @@ export default function CreatePage() {
 
               <button
                 type="submit"
-                disabled={loading || removingBg}
+                disabled={loading}
                 style={{
                   ...styles.submitBtn,
-                  opacity: loading || removingBg ? 0.7 : 1,
-                  cursor: loading || removingBg ? "not-allowed" : "pointer",
+                  opacity: loading ? 0.7 : 1,
+                  cursor: loading ? "not-allowed" : "pointer",
                 }}
               >
-                {removingBg
-                  ? "Ürün Hazırlanıyor..."
-                  : loading
-                  ? "Kreatif Oluşturuluyor..."
-                  : "Kreatif Oluştur"}
+                {loading ? "Kreatif Oluşturuluyor..." : "Kreatif Oluştur"}
               </button>
             </form>
           </section>
@@ -384,14 +302,14 @@ export default function CreatePage() {
           <section style={styles.card}>
             <h2 style={styles.cardTitle}>Oluşturulan Sonuç</h2>
             <p style={styles.cardText}>
-              Bu sürümde AI’nin sahte yazıları, tasarım panelleri ile örtülür ve post daha temiz görünür.
+              Bu sürümde AI tam reklam postu üretir. Sonraki adımda edit mode ekleyeceğiz.
             </p>
 
             {!loading && !result && (
               <div style={styles.emptyBox}>
                 <div style={styles.emptyTitle}>Henüz kreatif oluşturulmadı</div>
                 <div style={styles.emptySub}>
-                  Sol taraftan bilgileri girip oluştur butonuna bas.
+                  Sol taraftaki formu doldurup oluştur butonuna bas.
                 </div>
               </div>
             )}
@@ -399,141 +317,44 @@ export default function CreatePage() {
             {loading && (
               <div style={styles.emptyBox}>
                 <div style={styles.loader} />
-                <div style={styles.emptyTitle}>Yeni kreatif hazırlanıyor...</div>
+                <div style={styles.emptyTitle}>AI reklam postu hazırlanıyor...</div>
                 <div style={styles.emptySub}>
-                  Sahne, ürün yerleşimi ve reklam tasarım panelleri hazırlanıyor.
+                  Ürün analiz ediliyor, kampanya metni ve tam post üretiliyor.
                 </div>
               </div>
             )}
 
             {result?.success && (
               <div>
-                {backgroundSrc ? (
-                  <div
-                    style={{
-                      ...styles.posterWrap,
-                      aspectRatio: posterAspect,
-                      ...(templateVariant === "campaign"
-                        ? styles.posterCampaign
-                        : templateVariant === "premium"
-                        ? styles.posterPremium
-                        : styles.posterEditorial),
-                    }}
-                  >
+                {generatedImageSrc ? (
+                  <div style={styles.resultImageWrap}>
                     <img
-                      src={backgroundSrc}
-                      alt="AI background"
-                      style={styles.posterBackground}
+                      src={generatedImageSrc}
+                      alt="Oluşturulan reklam postu"
+                      style={styles.resultImage}
                     />
-
-                    <div style={styles.globalDarkOverlay} />
-
-                    <div
-                      style={{
-                        ...styles.topDesignPanel,
-                        ...(templateVariant === "campaign"
-                          ? styles.topPanelCampaign
-                          : templateVariant === "premium"
-                          ? styles.topPanelPremium
-                          : styles.topPanelEditorial),
-                      }}
-                    />
-
-                    <div
-                      style={{
-                        ...styles.bottomDesignPanel,
-                        ...(templateVariant === "campaign"
-                          ? styles.bottomPanelCampaign
-                          : templateVariant === "premium"
-                          ? styles.bottomPanelPremium
-                          : styles.bottomPanelEditorial),
-                      }}
-                    />
-
-                    {showSoftEffects && (
-                      <>
-                        <div style={styles.fxGlowOne} />
-                        <div style={styles.fxGlowTwo} />
-                      </>
-                    )}
-
-                    {(cutoutImage || referencePreview) && (
-                      <div style={styles.productLayer}>
-                        <img
-                          src={cutoutImage || referencePreview}
-                          alt="Gerçek ürün"
-                          className="poster-product-v2"
-                          style={{
-                            ...styles.productImage,
-                            ...(templateVariant === "campaign"
-                              ? styles.productCampaign
-                              : templateVariant === "premium"
-                              ? styles.productPremium
-                              : styles.productEditorial),
-                          }}
-                        />
-                      </div>
-                    )}
-
-                    <div style={styles.topTextWrap}>
-                      <div
-                        style={{
-                          ...styles.topMiniBadge,
-                          ...(templateVariant === "campaign"
-                            ? styles.topMiniBadgeCampaign
-                            : templateVariant === "premium"
-                            ? styles.topMiniBadgePremium
-                            : styles.topMiniBadgeEditorial),
-                        }}
-                      >
-                        {templateVariant === "campaign"
-                          ? "Özel Kampanya"
-                          : templateVariant === "premium"
-                          ? "Premium Seçim"
-                          : "Trend Seri"}
-                      </div>
-
-                      <h3 className="poster-title-v2" style={styles.posterTitle}>
-                        {safeTitle}
-                      </h3>
-
-                      <p className="poster-desc-v2" style={styles.posterDesc}>
-                        {safeDesc}
-                      </p>
-                    </div>
-
-                    <div style={styles.bottomLeftTextPanel}>
-                      <div style={styles.bottomPanelHeadline}>{campaign || safeDesc}</div>
-                      <div className="poster-cta-v2" style={styles.ctaButton}>
-                        {safeCta}
-                      </div>
-                    </div>
-
-                    <div style={styles.infoBadgeWrap}>
-                      <div style={styles.infoBadge}>Merkez Ürün Sunumu</div>
-                    </div>
-
-                    {logoPreview ? (
-                      <div style={styles.logoWrap}>
-                        <img
-                          src={logoPreview}
-                          alt="Logo"
-                          className="poster-logo-v2"
-                          style={styles.logoImage}
-                        />
-                      </div>
-                    ) : (
-                      <div style={styles.logoTextWrap}>
-                        <div style={styles.logoTextBrand}>{safeBrand}</div>
-                      </div>
-                    )}
                   </div>
                 ) : (
-                  <div style={styles.errorBox}>Background verisi dönmedi.</div>
+                  <div style={styles.errorBox}>Görsel verisi dönmedi.</div>
                 )}
 
                 <div style={styles.metaGrid}>
                   <div style={styles.metaCard}>
+                    <div style={styles.metaLabel}>Başlık</div>
+                    <div style={styles.metaValue}>{result.text?.title || "-"}</div>
+                  </div>
+
+                  <div style={styles.metaCard}>
+                    <div style={styles.metaLabel}>CTA</div>
+                    <div style={styles.metaValue}>{result.text?.cta || "-"}</div>
+                  </div>
+
+                  <div style={styles.metaCardWide}>
+                    <div style={styles.metaLabel}>Açıklama</div>
+                    <div style={styles.metaValue}>{result.text?.description || "-"}</div>
+                  </div>
+
+                  <div style={styles.metaCardWide}>
                     <div style={styles.metaLabel}>Hashtag</div>
                     <div style={styles.metaValue}>{result.text?.hashtags || "-"}</div>
                   </div>
@@ -551,6 +372,26 @@ export default function CreatePage() {
                   <div style={styles.metaCard}>
                     <div style={styles.metaLabel}>Format</div>
                     <div style={styles.metaValue}>{result.meta?.format || "-"}</div>
+                  </div>
+
+                  <div style={styles.metaCard}>
+                    <div style={styles.metaLabel}>Müşteri İsteği</div>
+                    <div style={styles.metaValue}>
+                      {result.meta?.customVisualRequest || "Yok"}
+                    </div>
+                  </div>
+
+                  <div style={styles.metaCardWide}>
+                    <div style={styles.metaLabel}>Ürün Analizi</div>
+                    <div style={styles.metaValue}>
+                      <strong>Tip:</strong> {result.analysis?.productType || "-"}
+                      <br />
+                      <strong>Kullanım Alanı:</strong> {result.analysis?.usageArea || "-"}
+                      <br />
+                      <strong>Sahne:</strong> {result.analysis?.sceneSuggestion || "-"}
+                      <br />
+                      <strong>Görünüm:</strong> {result.analysis?.productLook || "-"}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -651,6 +492,18 @@ const styles: Record<string, React.CSSProperties> = {
     resize: "vertical",
     outline: "none",
   },
+  textareaSmall: {
+    width: "100%",
+    boxSizing: "border-box",
+    minHeight: "90px",
+    padding: "12px 14px",
+    borderRadius: "12px",
+    border: "1px solid #d1d5db",
+    background: "#fff",
+    fontSize: "14px",
+    resize: "vertical",
+    outline: "none",
+  },
   uploadGrid: {
     display: "grid",
     gridTemplateColumns: "1fr 1fr",
@@ -698,18 +551,6 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: "12px",
     color: "#6b7280",
     wordBreak: "break-word",
-  },
-  infoBlue: {
-    marginTop: "8px",
-    fontSize: "12px",
-    color: "#2563eb",
-    fontWeight: 700,
-  },
-  infoGreen: {
-    marginTop: "8px",
-    fontSize: "12px",
-    color: "#16a34a",
-    fontWeight: 700,
   },
   submitBtn: {
     width: "100%",
@@ -762,253 +603,19 @@ const styles: Record<string, React.CSSProperties> = {
     marginBottom: "14px",
     animation: "spin 1s linear infinite",
   },
-
-  posterWrap: {
-    position: "relative",
-    width: "100%",
+  resultImageWrap: {
     overflow: "hidden",
-    borderRadius: "28px",
-    marginBottom: "18px",
+    borderRadius: "22px",
     border: "1px solid #d1d5db",
     background: "#111827",
-    boxShadow: "0 20px 60px rgba(0,0,0,0.14)",
+    marginBottom: "18px",
+    boxShadow: "0 16px 40px rgba(0,0,0,0.12)",
   },
-  posterCampaign: {},
-  posterPremium: {},
-  posterEditorial: {},
-  posterBackground: {
-    position: "absolute",
-    inset: 0,
+  resultImage: {
     width: "100%",
-    height: "100%",
+    display: "block",
     objectFit: "cover",
   },
-  globalDarkOverlay: {
-    position: "absolute",
-    inset: 0,
-    background:
-      "linear-gradient(180deg, rgba(0,0,0,0.22) 0%, rgba(0,0,0,0.12) 40%, rgba(0,0,0,0.28) 100%)",
-    zIndex: 1,
-  },
-
-  topDesignPanel: {
-    position: "absolute",
-    left: "18px",
-    top: "18px",
-    right: "18px",
-    minHeight: "160px",
-    borderRadius: "26px",
-    zIndex: 4,
-    boxShadow: "0 20px 40px rgba(0,0,0,0.14)",
-  },
-  topPanelCampaign: {
-    background: "linear-gradient(135deg, rgba(252,252,252,0.96) 0%, rgba(244,242,236,0.94) 100%)",
-  },
-  topPanelPremium: {
-    background: "linear-gradient(135deg, rgba(245,239,227,0.96) 0%, rgba(233,223,203,0.94) 100%)",
-  },
-  topPanelEditorial: {
-    background: "linear-gradient(135deg, rgba(248,248,248,0.96) 0%, rgba(236,236,236,0.94) 100%)",
-  },
-
-  bottomDesignPanel: {
-    position: "absolute",
-    left: "18px",
-    bottom: "18px",
-    width: "44%",
-    minHeight: "120px",
-    borderRadius: "24px",
-    zIndex: 4,
-    boxShadow: "0 18px 36px rgba(0,0,0,0.14)",
-  },
-  bottomPanelCampaign: {
-    background: "linear-gradient(135deg, rgba(255,255,255,0.96) 0%, rgba(246,246,246,0.94) 100%)",
-  },
-  bottomPanelPremium: {
-    background: "linear-gradient(135deg, rgba(250,246,240,0.96) 0%, rgba(239,232,220,0.94) 100%)",
-  },
-  bottomPanelEditorial: {
-    background: "linear-gradient(135deg, rgba(255,255,255,0.96) 0%, rgba(242,242,242,0.94) 100%)",
-  },
-
-  fxGlowOne: {
-    position: "absolute",
-    right: "8%",
-    top: "22%",
-    width: "130px",
-    height: "130px",
-    borderRadius: "999px",
-    background: "radial-gradient(circle, rgba(255,255,255,0.16) 0%, rgba(255,255,255,0) 72%)",
-    zIndex: 2,
-    animation: "floatSoft 4s ease-in-out infinite",
-  },
-  fxGlowTwo: {
-    position: "absolute",
-    left: "8%",
-    bottom: "18%",
-    width: "100px",
-    height: "100px",
-    borderRadius: "999px",
-    background: "radial-gradient(circle, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0) 72%)",
-    zIndex: 2,
-    animation: "floatSoft 3.2s ease-in-out infinite",
-  },
-
-  productLayer: {
-    position: "absolute",
-    inset: 0,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    zIndex: 5,
-    pointerEvents: "none",
-  },
-  productImage: {
-    objectFit: "contain",
-    filter: "drop-shadow(0 22px 40px rgba(0,0,0,0.28))",
-  },
-  productCampaign: {
-    maxWidth: "64%",
-    maxHeight: "48%",
-    transform: "translate(10%, 8%)",
-  },
-  productPremium: {
-    maxWidth: "62%",
-    maxHeight: "48%",
-    transform: "translate(10%, 7%) scale(1.02)",
-  },
-  productEditorial: {
-    maxWidth: "63%",
-    maxHeight: "48%",
-    transform: "translate(10%, 8%)",
-  },
-
-  topTextWrap: {
-    position: "absolute",
-    top: "34px",
-    left: "36px",
-    zIndex: 6,
-    maxWidth: "58%",
-  },
-  topMiniBadge: {
-    display: "inline-block",
-    padding: "9px 14px",
-    borderRadius: "999px",
-    fontSize: "12px",
-    fontWeight: 800,
-    marginBottom: "14px",
-  },
-  topMiniBadgeCampaign: {
-    background: "#111827",
-    color: "#ffffff",
-  },
-  topMiniBadgePremium: {
-    background: "#8b6a36",
-    color: "#fffaf0",
-  },
-  topMiniBadgeEditorial: {
-    background: "#111827",
-    color: "#ffffff",
-  },
-
-  posterTitle: {
-    margin: 0,
-    color: "#111827",
-    fontWeight: 900,
-    fontSize: "42px",
-    lineHeight: 1.02,
-    letterSpacing: "-0.03em",
-    maxWidth: "100%",
-  },
-  posterDesc: {
-    marginTop: "12px",
-    color: "#374151",
-    fontSize: "15px",
-    lineHeight: 1.55,
-    maxWidth: "92%",
-  },
-
-  bottomLeftTextPanel: {
-    position: "absolute",
-    left: "34px",
-    bottom: "34px",
-    zIndex: 6,
-    width: "34%",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "flex-start",
-    gap: "14px",
-  },
-  bottomPanelHeadline: {
-    color: "#111827",
-    fontWeight: 900,
-    fontSize: "18px",
-    lineHeight: 1.28,
-    textTransform: "uppercase",
-  },
-  ctaButton: {
-    background: "#111827",
-    color: "#ffffff",
-    padding: "12px 18px",
-    borderRadius: "999px",
-    fontWeight: 900,
-    fontSize: "14px",
-    boxShadow: "0 10px 24px rgba(0,0,0,0.14)",
-  },
-
-  infoBadgeWrap: {
-    position: "absolute",
-    right: "24px",
-    bottom: "120px",
-    zIndex: 6,
-  },
-  infoBadge: {
-    background: "rgba(255,255,255,0.9)",
-    color: "#111827",
-    borderRadius: "999px",
-    padding: "10px 14px",
-    fontSize: "12px",
-    fontWeight: 800,
-    boxShadow: "0 8px 18px rgba(0,0,0,0.12)",
-  },
-
-  logoWrap: {
-    position: "absolute",
-    right: "18px",
-    bottom: "18px",
-    zIndex: 7,
-    width: "84px",
-    height: "84px",
-    borderRadius: "18px",
-    background: "rgba(255,255,255,0.96)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    boxShadow: "0 12px 26px rgba(0,0,0,0.20)",
-    overflow: "hidden",
-    padding: "8px",
-  },
-  logoImage: {
-    width: "84px",
-    height: "84px",
-    objectFit: "contain",
-  },
-  logoTextWrap: {
-    position: "absolute",
-    right: "18px",
-    bottom: "18px",
-    zIndex: 7,
-    background: "rgba(255,255,255,0.95)",
-    color: "#111827",
-    padding: "12px 16px",
-    borderRadius: "16px",
-    fontWeight: 900,
-    boxShadow: "0 12px 26px rgba(0,0,0,0.20)",
-  },
-  logoTextBrand: {
-    fontSize: "14px",
-  },
-
   metaGrid: {
     display: "grid",
     gridTemplateColumns: "1fr 1fr",
@@ -1019,6 +626,13 @@ const styles: Record<string, React.CSSProperties> = {
     border: "1px solid #e5e7eb",
     borderRadius: "14px",
     padding: "14px",
+  },
+  metaCardWide: {
+    background: "#f9fafb",
+    border: "1px solid #e5e7eb",
+    borderRadius: "14px",
+    padding: "14px",
+    gridColumn: "1 / -1",
   },
   metaLabel: {
     fontSize: "12px",
