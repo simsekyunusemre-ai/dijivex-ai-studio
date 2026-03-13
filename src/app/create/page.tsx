@@ -41,18 +41,20 @@ export default function CreatePage() {
   }
 
   async function fileToBase64(file: File) {
-    const buffer = await file.arrayBuffer();
-    let binary = "";
-    const bytes = new Uint8Array(buffer);
-    const chunkSize = 8192;
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
 
-    for (let i = 0; i < bytes.length; i += chunkSize) {
-      const chunk = bytes.subarray(i, i + chunkSize);
-      binary += String.fromCharCode(...chunk);
-    }
+    reader.onload = () => {
+      const result = reader.result as string;
+      const base64 = result.split(",")[1];
+      resolve(base64);
+    };
 
-    return btoa(binary);
-  }
+    reader.onerror = () => reject(new Error("Dosya okunamadı"));
+
+    reader.readAsDataURL(file);
+  });
+}
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
