@@ -130,13 +130,8 @@ export default function CreatePage() {
       formData.append("targetAudience", targetAudience);
       formData.append("campaign", campaign);
 
-      if (logoFile) {
-        formData.append("logo", logoFile);
-      }
-
-      if (referenceImageFile) {
-        formData.append("referenceImage", referenceImageFile);
-      }
+      if (logoFile) formData.append("logo", logoFile);
+      if (referenceImageFile) formData.append("referenceImage", referenceImageFile);
 
       const response = await fetch("/api/generate", {
         method: "POST",
@@ -158,16 +153,11 @@ export default function CreatePage() {
     }
   }
 
-  const showWaterEffects =
+  const showSoftEffects =
     safeSector.includes("bebek") ||
     safeSector.includes("çocuk") ||
     safeSector.includes("cocuk") ||
     safeSector.includes("kozmetik");
-
-  const showButterflies =
-    safeSector.includes("bebek") ||
-    safeSector.includes("çocuk") ||
-    safeSector.includes("cocuk");
 
   return (
     <>
@@ -184,22 +174,10 @@ export default function CreatePage() {
         @keyframes floatSoft {
           0%,
           100% {
-            transform: translateY(0px) rotate(0deg);
+            transform: translateY(0px);
           }
           50% {
-            transform: translateY(-8px) rotate(4deg);
-          }
-        }
-
-        @keyframes pulseGlow {
-          0%,
-          100% {
-            transform: scale(1);
-            opacity: 0.92;
-          }
-          50% {
-            transform: scale(1.04);
-            opacity: 1;
+            transform: translateY(-10px);
           }
         }
 
@@ -214,40 +192,29 @@ export default function CreatePage() {
             grid-template-columns: 1fr !important;
           }
 
-          .poster-overlay-wrap {
-            padding: 16px !important;
-          }
-
-          .poster-title {
+          .poster-title-v2 {
             font-size: 24px !important;
-            line-height: 1.06 !important;
-            max-width: 88% !important;
+            line-height: 1.05 !important;
           }
 
-          .poster-subtitle {
+          .poster-desc-v2 {
             font-size: 13px !important;
             line-height: 1.45 !important;
-            max-width: 86% !important;
           }
 
-          .poster-product {
-            max-width: 68% !important;
-            max-height: 48% !important;
+          .poster-product-v2 {
+            max-width: 74% !important;
+            max-height: 44% !important;
           }
 
-          .poster-logo {
+          .poster-logo-v2 {
             width: 58px !important;
             height: 58px !important;
           }
 
-          .poster-badge {
-            font-size: 11px !important;
-            padding: 8px 12px !important;
-          }
-
-          .poster-cta {
+          .poster-cta-v2 {
             font-size: 12px !important;
-            padding: 11px 14px !important;
+            padding: 10px 14px !important;
           }
         }
       `}</style>
@@ -258,8 +225,8 @@ export default function CreatePage() {
             <div style={styles.badge}>Dijivex AI Studio</div>
             <h1 style={styles.title}>AI Reklam Kreatifi Oluştur</h1>
             <p style={styles.subtitle}>
-              Ürünü bozmadan merkeze yerleştir, sahneyi yapay zeka oluştursun, yazılar
-              profesyonel post düzeniyle kod tarafından yerleşsin.
+              Arka plan AI ile gelir, ürün aynen korunur, yazılar ve reklam düzeni
+              profesyonel tasarım katmanı ile eklenir.
             </p>
           </div>
         </div>
@@ -267,7 +234,7 @@ export default function CreatePage() {
         <div className="create-grid-fallback" style={styles.grid}>
           <section style={styles.card}>
             <h2 style={styles.cardTitle}>Brief Formu</h2>
-            <p style={styles.cardText}>Her oluşturma sonrası yeni bir reklam düzeni gelir.</p>
+            <p style={styles.cardText}>Her oluşturmada yeni sahne ve yeni post düzeni.</p>
 
             <form onSubmit={handleSubmit}>
               <div style={styles.field}>
@@ -307,7 +274,7 @@ export default function CreatePage() {
                 <input
                   value={targetAudience}
                   onChange={(e) => setTargetAudience(e.target.value)}
-                  placeholder="Örn: Anneler, genç aileler"
+                  placeholder="Örn: Anneler, yeni evliler, aileler"
                   required
                   style={styles.input}
                 />
@@ -417,14 +384,14 @@ export default function CreatePage() {
           <section style={styles.card}>
             <h2 style={styles.cardTitle}>Oluşturulan Sonuç</h2>
             <p style={styles.cardText}>
-              Sahne AI tarafından, yazı ve reklam düzeni ise kontrollü post sistemi ile oluşturulur.
+              Bu sürümde AI’nin sahte yazıları, tasarım panelleri ile örtülür ve post daha temiz görünür.
             </p>
 
             {!loading && !result && (
               <div style={styles.emptyBox}>
                 <div style={styles.emptyTitle}>Henüz kreatif oluşturulmadı</div>
                 <div style={styles.emptySub}>
-                  Sol taraftan brief gir ve ürünü yükleyip oluştur butonuna bas.
+                  Sol taraftan bilgileri girip oluştur butonuna bas.
                 </div>
               </div>
             )}
@@ -434,7 +401,7 @@ export default function CreatePage() {
                 <div style={styles.loader} />
                 <div style={styles.emptyTitle}>Yeni kreatif hazırlanıyor...</div>
                 <div style={styles.emptySub}>
-                  Sahne, ürün yerleşimi ve post tasarımı hazırlanıyor.
+                  Sahne, ürün yerleşimi ve reklam tasarım panelleri hazırlanıyor.
                 </div>
               </div>
             )}
@@ -459,48 +426,34 @@ export default function CreatePage() {
                       style={styles.posterBackground}
                     />
 
-                    <div style={styles.posterOverlayDarkTop} />
-                    <div style={styles.posterOverlayDarkBottom} />
+                    <div style={styles.globalDarkOverlay} />
 
-                    {templateVariant === "campaign" && (
+                    <div
+                      style={{
+                        ...styles.topDesignPanel,
+                        ...(templateVariant === "campaign"
+                          ? styles.topPanelCampaign
+                          : templateVariant === "premium"
+                          ? styles.topPanelPremium
+                          : styles.topPanelEditorial),
+                      }}
+                    />
+
+                    <div
+                      style={{
+                        ...styles.bottomDesignPanel,
+                        ...(templateVariant === "campaign"
+                          ? styles.bottomPanelCampaign
+                          : templateVariant === "premium"
+                          ? styles.bottomPanelPremium
+                          : styles.bottomPanelEditorial),
+                      }}
+                    />
+
+                    {showSoftEffects && (
                       <>
-                        <div style={styles.campaignRibbonTopLeft}>
-                          <span style={styles.campaignRibbonText}>YENİ SEZON</span>
-                        </div>
-
-                        <div style={styles.campaignBottomPanel}>
-                          <div style={styles.campaignBottomTitle}>{safeDesc}</div>
-                        </div>
-                      </>
-                    )}
-
-                    {templateVariant === "premium" && (
-                      <>
-                        <div style={styles.premiumTopLine} />
-                        <div style={styles.premiumCircleGlow} />
-                      </>
-                    )}
-
-                    {templateVariant === "editorial" && (
-                      <>
-                        <div style={styles.editorialSideBar} />
-                        <div style={styles.editorialCornerTag}>TREND</div>
-                      </>
-                    )}
-
-                    {showWaterEffects && (
-                      <>
-                        <div style={styles.fxBubbleOne} />
-                        <div style={styles.fxBubbleTwo} />
-                        <div style={styles.fxBubbleThree} />
-                      </>
-                    )}
-
-                    {showButterflies && (
-                      <>
-                        <div style={styles.fxButterflyOne}>✦</div>
-                        <div style={styles.fxButterflyTwo}>✦</div>
-                        <div style={styles.fxButterflyThree}>✦</div>
+                        <div style={styles.fxGlowOne} />
+                        <div style={styles.fxGlowTwo} />
                       </>
                     )}
 
@@ -509,7 +462,7 @@ export default function CreatePage() {
                         <img
                           src={cutoutImage || referencePreview}
                           alt="Gerçek ürün"
-                          className="poster-product"
+                          className="poster-product-v2"
                           style={{
                             ...styles.productImage,
                             ...(templateVariant === "campaign"
@@ -522,42 +475,42 @@ export default function CreatePage() {
                       </div>
                     )}
 
-                    <div className="poster-overlay-wrap" style={styles.overlayWrap}>
+                    <div style={styles.topTextWrap}>
                       <div
-                        className="poster-badge"
                         style={{
-                          ...styles.mainBadge,
+                          ...styles.topMiniBadge,
                           ...(templateVariant === "campaign"
-                            ? styles.badgeCampaign
+                            ? styles.topMiniBadgeCampaign
                             : templateVariant === "premium"
-                            ? styles.badgePremium
-                            : styles.badgeEditorial),
+                            ? styles.topMiniBadgePremium
+                            : styles.topMiniBadgeEditorial),
                         }}
                       >
                         {templateVariant === "campaign"
                           ? "Özel Kampanya"
                           : templateVariant === "premium"
                           ? "Premium Seçim"
-                          : "Yeni Koleksiyon"}
+                          : "Trend Seri"}
                       </div>
 
-                      <h3 className="poster-title" style={styles.posterTitle}>
+                      <h3 className="poster-title-v2" style={styles.posterTitle}>
                         {safeTitle}
                       </h3>
 
-                      <p className="poster-subtitle" style={styles.posterSubtitle}>
+                      <p className="poster-desc-v2" style={styles.posterDesc}>
                         {safeDesc}
                       </p>
                     </div>
 
-                    <div style={styles.bottomLeftWrap}>
-                      <div className="poster-cta" style={styles.ctaButton}>
+                    <div style={styles.bottomLeftTextPanel}>
+                      <div style={styles.bottomPanelHeadline}>{campaign || safeDesc}</div>
+                      <div className="poster-cta-v2" style={styles.ctaButton}>
                         {safeCta}
                       </div>
                     </div>
 
-                    <div style={styles.bottomRightBadges}>
-                      <div style={styles.smallInfoBadge}>Merkez Ürün Sunumu</div>
+                    <div style={styles.infoBadgeWrap}>
+                      <div style={styles.infoBadge}>Merkez Ürün Sunumu</div>
                     </div>
 
                     {logoPreview ? (
@@ -565,7 +518,7 @@ export default function CreatePage() {
                         <img
                           src={logoPreview}
                           alt="Logo"
-                          className="poster-logo"
+                          className="poster-logo-v2"
                           style={styles.logoImage}
                         />
                       </div>
@@ -814,10 +767,10 @@ const styles: Record<string, React.CSSProperties> = {
     position: "relative",
     width: "100%",
     overflow: "hidden",
-    borderRadius: "26px",
+    borderRadius: "28px",
     marginBottom: "18px",
     border: "1px solid #d1d5db",
-    background: "#101010",
+    background: "#111827",
     boxShadow: "0 20px 60px rgba(0,0,0,0.14)",
   },
   posterCampaign: {},
@@ -830,289 +783,195 @@ const styles: Record<string, React.CSSProperties> = {
     height: "100%",
     objectFit: "cover",
   },
-  posterOverlayDarkTop: {
+  globalDarkOverlay: {
     position: "absolute",
     inset: 0,
     background:
-      "linear-gradient(180deg, rgba(0,0,0,0.62) 0%, rgba(0,0,0,0.18) 34%, rgba(0,0,0,0) 56%)",
-    zIndex: 2,
-    pointerEvents: "none",
+      "linear-gradient(180deg, rgba(0,0,0,0.22) 0%, rgba(0,0,0,0.12) 40%, rgba(0,0,0,0.28) 100%)",
+    zIndex: 1,
   },
-  posterOverlayDarkBottom: {
+
+  topDesignPanel: {
     position: "absolute",
-    inset: 0,
-    background:
-      "linear-gradient(180deg, rgba(0,0,0,0) 46%, rgba(0,0,0,0.12) 63%, rgba(0,0,0,0.68) 100%)",
-    zIndex: 2,
-    pointerEvents: "none",
+    left: "18px",
+    top: "18px",
+    right: "18px",
+    minHeight: "160px",
+    borderRadius: "26px",
+    zIndex: 4,
+    boxShadow: "0 20px 40px rgba(0,0,0,0.14)",
   },
+  topPanelCampaign: {
+    background: "linear-gradient(135deg, rgba(252,252,252,0.96) 0%, rgba(244,242,236,0.94) 100%)",
+  },
+  topPanelPremium: {
+    background: "linear-gradient(135deg, rgba(245,239,227,0.96) 0%, rgba(233,223,203,0.94) 100%)",
+  },
+  topPanelEditorial: {
+    background: "linear-gradient(135deg, rgba(248,248,248,0.96) 0%, rgba(236,236,236,0.94) 100%)",
+  },
+
+  bottomDesignPanel: {
+    position: "absolute",
+    left: "18px",
+    bottom: "18px",
+    width: "44%",
+    minHeight: "120px",
+    borderRadius: "24px",
+    zIndex: 4,
+    boxShadow: "0 18px 36px rgba(0,0,0,0.14)",
+  },
+  bottomPanelCampaign: {
+    background: "linear-gradient(135deg, rgba(255,255,255,0.96) 0%, rgba(246,246,246,0.94) 100%)",
+  },
+  bottomPanelPremium: {
+    background: "linear-gradient(135deg, rgba(250,246,240,0.96) 0%, rgba(239,232,220,0.94) 100%)",
+  },
+  bottomPanelEditorial: {
+    background: "linear-gradient(135deg, rgba(255,255,255,0.96) 0%, rgba(242,242,242,0.94) 100%)",
+  },
+
+  fxGlowOne: {
+    position: "absolute",
+    right: "8%",
+    top: "22%",
+    width: "130px",
+    height: "130px",
+    borderRadius: "999px",
+    background: "radial-gradient(circle, rgba(255,255,255,0.16) 0%, rgba(255,255,255,0) 72%)",
+    zIndex: 2,
+    animation: "floatSoft 4s ease-in-out infinite",
+  },
+  fxGlowTwo: {
+    position: "absolute",
+    left: "8%",
+    bottom: "18%",
+    width: "100px",
+    height: "100px",
+    borderRadius: "999px",
+    background: "radial-gradient(circle, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0) 72%)",
+    zIndex: 2,
+    animation: "floatSoft 3.2s ease-in-out infinite",
+  },
+
   productLayer: {
     position: "absolute",
     inset: 0,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    zIndex: 3,
+    zIndex: 5,
     pointerEvents: "none",
   },
   productImage: {
     objectFit: "contain",
-    filter: "drop-shadow(0 18px 34px rgba(0,0,0,0.28))",
+    filter: "drop-shadow(0 22px 40px rgba(0,0,0,0.28))",
   },
   productCampaign: {
-    maxWidth: "58%",
-    maxHeight: "49%",
-    transform: "translateY(8%)",
+    maxWidth: "64%",
+    maxHeight: "48%",
+    transform: "translate(10%, 8%)",
   },
   productPremium: {
-    maxWidth: "54%",
+    maxWidth: "62%",
     maxHeight: "48%",
-    transform: "translateY(6%) scale(1.02)",
+    transform: "translate(10%, 7%) scale(1.02)",
   },
   productEditorial: {
-    maxWidth: "56%",
-    maxHeight: "50%",
-    transform: "translateY(4%)",
+    maxWidth: "63%",
+    maxHeight: "48%",
+    transform: "translate(10%, 8%)",
   },
-  overlayWrap: {
+
+  topTextWrap: {
     position: "absolute",
-    left: 0,
-    top: 0,
-    zIndex: 5,
-    padding: "24px",
-    width: "100%",
-    boxSizing: "border-box",
+    top: "34px",
+    left: "36px",
+    zIndex: 6,
+    maxWidth: "58%",
   },
-  mainBadge: {
+  topMiniBadge: {
     display: "inline-block",
+    padding: "9px 14px",
     borderRadius: "999px",
+    fontSize: "12px",
     fontWeight: 800,
     marginBottom: "14px",
-    fontSize: "12px",
-    backdropFilter: "blur(8px)",
   },
-  badgeCampaign: {
-    background: "rgba(255,255,255,0.22)",
-    color: "#fff",
-    border: "1px solid rgba(255,255,255,0.3)",
-    padding: "9px 14px",
-  },
-  badgePremium: {
-    background: "rgba(196, 163, 102, 0.18)",
-    color: "#fff8ea",
-    border: "1px solid rgba(233, 201, 145, 0.34)",
-    padding: "9px 14px",
-  },
-  badgeEditorial: {
-    background: "rgba(255,255,255,0.16)",
-    color: "#fff",
-    border: "1px solid rgba(255,255,255,0.26)",
-    padding: "9px 14px",
-  },
-  posterTitle: {
-    margin: 0,
-    maxWidth: "64%",
-    color: "#ffffff",
-    fontWeight: 900,
-    fontSize: "40px",
-    lineHeight: 1.02,
-    letterSpacing: "-0.03em",
-    textShadow: "0 3px 14px rgba(0,0,0,0.34)",
-  },
-  posterSubtitle: {
-    marginTop: "12px",
-    maxWidth: "58%",
-    color: "rgba(255,255,255,0.94)",
-    fontSize: "15px",
-    lineHeight: 1.55,
-    textShadow: "0 2px 10px rgba(0,0,0,0.34)",
-  },
-
-  campaignRibbonTopLeft: {
-    position: "absolute",
-    right: "22px",
-    top: "20px",
-    zIndex: 5,
-    background: "rgba(255,255,255,0.88)",
-    color: "#111827",
-    padding: "10px 16px",
-    borderRadius: "999px",
-    fontWeight: 900,
-    boxShadow: "0 10px 24px rgba(0,0,0,0.16)",
-  },
-  campaignRibbonText: {
-    fontSize: "12px",
-    letterSpacing: "0.08em",
-  },
-  campaignBottomPanel: {
-    position: "absolute",
-    left: "22px",
-    right: "22px",
-    bottom: "18px",
-    minHeight: "78px",
-    background: "rgba(255,255,255,0.9)",
-    borderRadius: "20px",
-    zIndex: 4,
-    display: "flex",
-    alignItems: "center",
-    padding: "16px 20px",
-    boxSizing: "border-box",
-    boxShadow: "0 16px 30px rgba(0,0,0,0.12)",
-  },
-  campaignBottomTitle: {
-    color: "#111827",
-    fontWeight: 900,
-    fontSize: "18px",
-    maxWidth: "76%",
-    lineHeight: 1.25,
-  },
-
-  premiumTopLine: {
-    position: "absolute",
-    top: "20px",
-    left: "24px",
-    width: "120px",
-    height: "4px",
-    borderRadius: "999px",
-    background: "linear-gradient(90deg, #f6deb1 0%, #c4a366 100%)",
-    zIndex: 5,
-    boxShadow: "0 0 18px rgba(225,190,120,0.32)",
-  },
-  premiumCircleGlow: {
-    position: "absolute",
-    right: "8%",
-    top: "16%",
-    width: "150px",
-    height: "150px",
-    borderRadius: "999px",
-    background: "radial-gradient(circle, rgba(255,220,160,0.18) 0%, rgba(255,220,160,0) 72%)",
-    zIndex: 1,
-    animation: "pulseGlow 3.2s ease-in-out infinite",
-  },
-
-  editorialSideBar: {
-    position: "absolute",
-    left: "18px",
-    top: "92px",
-    bottom: "92px",
-    width: "6px",
-    borderRadius: "999px",
-    background: "rgba(255,255,255,0.84)",
-    zIndex: 5,
-  },
-  editorialCornerTag: {
-    position: "absolute",
-    top: "20px",
-    right: "22px",
-    zIndex: 5,
+  topMiniBadgeCampaign: {
     background: "#111827",
     color: "#ffffff",
-    borderRadius: "12px",
-    padding: "10px 14px",
+  },
+  topMiniBadgePremium: {
+    background: "#8b6a36",
+    color: "#fffaf0",
+  },
+  topMiniBadgeEditorial: {
+    background: "#111827",
+    color: "#ffffff",
+  },
+
+  posterTitle: {
+    margin: 0,
+    color: "#111827",
     fontWeight: 900,
-    fontSize: "12px",
-    letterSpacing: "0.08em",
+    fontSize: "42px",
+    lineHeight: 1.02,
+    letterSpacing: "-0.03em",
+    maxWidth: "100%",
+  },
+  posterDesc: {
+    marginTop: "12px",
+    color: "#374151",
+    fontSize: "15px",
+    lineHeight: 1.55,
+    maxWidth: "92%",
   },
 
-  fxBubbleOne: {
+  bottomLeftTextPanel: {
     position: "absolute",
-    right: "20%",
-    bottom: "24%",
-    width: "72px",
-    height: "72px",
-    borderRadius: "999px",
-    background: "radial-gradient(circle, rgba(255,255,255,0.34) 0%, rgba(255,255,255,0.06) 65%, rgba(255,255,255,0) 74%)",
-    zIndex: 2,
-    animation: "floatSoft 3.2s ease-in-out infinite",
-  },
-  fxBubbleTwo: {
-    position: "absolute",
-    left: "10%",
-    bottom: "18%",
-    width: "44px",
-    height: "44px",
-    borderRadius: "999px",
-    background: "radial-gradient(circle, rgba(255,255,255,0.28) 0%, rgba(255,255,255,0.04) 70%, rgba(255,255,255,0) 78%)",
-    zIndex: 2,
-    animation: "floatSoft 4s ease-in-out infinite",
-  },
-  fxBubbleThree: {
-    position: "absolute",
-    right: "10%",
-    top: "24%",
-    width: "52px",
-    height: "52px",
-    borderRadius: "999px",
-    background: "radial-gradient(circle, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0.04) 72%, rgba(255,255,255,0) 80%)",
-    zIndex: 2,
-    animation: "floatSoft 3.6s ease-in-out infinite",
-  },
-  fxButterflyOne: {
-    position: "absolute",
-    top: "20%",
-    right: "16%",
-    color: "rgba(255,255,255,0.92)",
-    fontSize: "28px",
-    zIndex: 5,
-    animation: "floatSoft 3s ease-in-out infinite",
-    textShadow: "0 4px 12px rgba(0,0,0,0.24)",
-  },
-  fxButterflyTwo: {
-    position: "absolute",
-    top: "28%",
-    left: "12%",
-    color: "rgba(255,255,255,0.72)",
-    fontSize: "20px",
-    zIndex: 5,
-    animation: "floatSoft 4s ease-in-out infinite",
-    textShadow: "0 4px 12px rgba(0,0,0,0.24)",
-  },
-  fxButterflyThree: {
-    position: "absolute",
-    bottom: "25%",
-    right: "24%",
-    color: "rgba(255,255,255,0.72)",
-    fontSize: "18px",
-    zIndex: 5,
-    animation: "floatSoft 3.4s ease-in-out infinite",
-    textShadow: "0 4px 12px rgba(0,0,0,0.24)",
-  },
-
-  bottomLeftWrap: {
-    position: "absolute",
-    left: "22px",
-    bottom: "22px",
+    left: "34px",
+    bottom: "34px",
     zIndex: 6,
+    width: "34%",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "flex-start",
+    gap: "14px",
+  },
+  bottomPanelHeadline: {
+    color: "#111827",
+    fontWeight: 900,
+    fontSize: "18px",
+    lineHeight: 1.28,
+    textTransform: "uppercase",
   },
   ctaButton: {
-    background: "#ffffff",
-    color: "#111827",
-    padding: "13px 18px",
+    background: "#111827",
+    color: "#ffffff",
+    padding: "12px 18px",
     borderRadius: "999px",
     fontWeight: 900,
     fontSize: "14px",
-    boxShadow: "0 12px 24px rgba(0,0,0,0.18)",
+    boxShadow: "0 10px 24px rgba(0,0,0,0.14)",
   },
-  bottomRightBadges: {
+
+  infoBadgeWrap: {
     position: "absolute",
-    right: "22px",
-    bottom: "122px",
+    right: "24px",
+    bottom: "120px",
     zIndex: 6,
-    display: "flex",
-    flexDirection: "column",
-    gap: "8px",
-    alignItems: "flex-end",
   },
-  smallInfoBadge: {
-    background: "rgba(255,255,255,0.18)",
-    color: "#fff",
-    border: "1px solid rgba(255,255,255,0.28)",
-    padding: "10px 14px",
+  infoBadge: {
+    background: "rgba(255,255,255,0.9)",
+    color: "#111827",
     borderRadius: "999px",
+    padding: "10px 14px",
     fontSize: "12px",
     fontWeight: 800,
-    backdropFilter: "blur(8px)",
+    boxShadow: "0 8px 18px rgba(0,0,0,0.12)",
   },
+
   logoWrap: {
     position: "absolute",
     right: "18px",
