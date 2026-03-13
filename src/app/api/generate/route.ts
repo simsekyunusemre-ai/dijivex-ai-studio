@@ -116,6 +116,63 @@ Kurallar:
   return safeJsonParse<GeneratedText>(response.output_text);
 }
 
+function pickRandomVariant() {
+  const variants = [
+    "editorial",
+    "campaign",
+    "luxury",
+    "minimal",
+    "catalog-social",
+  ];
+
+  return variants[Math.floor(Math.random() * variants.length)];
+}
+
+function getVariantInstruction(variant: string, sector: string) {
+  const sectorLower = sector.toLowerCase();
+
+  const sectorStyle =
+    sectorLower.includes("mobilya")
+      ? "home furniture advertising"
+      : sectorLower.includes("bebek")
+      ? "baby product advertising"
+      : sectorLower.includes("kozmetik")
+      ? "beauty product advertising"
+      : sectorLower.includes("takı") || sectorLower.includes("taki")
+      ? "jewelry advertising"
+      : "premium product advertising";
+
+  const map: Record<string, string> = {
+    editorial: `
+Create an editorial style ${sectorStyle} scene.
+Use bold composition, stylish props, magazine-like visual hierarchy,
+premium lighting, visual storytelling, and high-end Instagram campaign feeling.
+`,
+    campaign: `
+Create a high-conversion campaign style ${sectorStyle} scene.
+Use stronger promotional composition, layered props, ad energy,
+clear top text area and lower CTA area, and dynamic commercial styling.
+`,
+    luxury: `
+Create a luxury ${sectorStyle} scene.
+Use refined materials, premium lighting, elegant background styling,
+sophisticated decor, polished shadows, and a premium boutique campaign feeling.
+`,
+    minimal: `
+Create a clean minimal ${sectorStyle} scene.
+Use fewer props, clean surfaces, spacious composition,
+strong center framing, subtle light gradients, and a premium Instagram ad look.
+`,
+    "catalog-social": `
+Create a hybrid catalog + social media ${sectorStyle} scene.
+Use clean product-first composition, marketing-friendly layout,
+balanced prop placement, commercial realism, and social-media-ready presentation.
+`,
+  };
+
+  return map[variant] || map["campaign"];
+}
+
 function buildBackgroundPrompt(params: {
   brandName: string;
   sector: string;
@@ -127,13 +184,16 @@ function buildBackgroundPrompt(params: {
   const { brandName, sector, format, campaign, analysis, randomSeedHint } = params;
 
   const formatTextMap: Record<string, string> = {
-    square: "instagram social media ad, square composition",
-    portrait: "vertical social media ad, story style composition",
+    square: "instagram post, square composition",
+    portrait: "vertical instagram story / reel ad composition",
     landscape: "horizontal banner advertising composition",
   };
 
+  const variant = pickRandomVariant();
+  const variantInstruction = getVariantInstruction(variant, sector);
+
   return `
-Create a premium advertising background scene only.
+Create a premium social media advertising background scene only.
 
 Brand context: ${brandName}
 Sector: ${sector}
@@ -148,16 +208,24 @@ Reference product info:
 - Scene suggestion: ${analysis.sceneSuggestion}
 
 Creative variation hint: ${randomSeedHint}
+Creative design variant: ${variant}
 
-Important rules:
+${variantInstruction}
+
+Important composition rules:
 - Do NOT generate the product itself
 - Do NOT generate a duplicate of the product
 - Reserve the center area for placing the real uploaded product later
-- Build a premium Instagram ad background
-- Add advertising energy, set design, depth, stylish props, lighting and composition
-- Top area should support headline placement
-- Lower area should support CTA placement
-- Make it feel like a real social media campaign visual
+- The center must be clean, visually strong, and suitable for compositing
+- Top-left or top area must support large headline placement
+- Lower-left or lower area must support CTA placement
+- This must feel like a real Instagram ad creative, not a plain room photo
+- Add campaign styling, ad atmosphere, premium depth, and visual drama
+- Background must be visually interesting and different on each generation
+- Avoid always repeating the same room layout
+- Use varied prop styling, framing and environment mood depending on the creative variant
+
+Hard restrictions:
 - No text
 - No letters
 - No typography
