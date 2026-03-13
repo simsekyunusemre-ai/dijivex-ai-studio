@@ -1,6 +1,6 @@
 import OpenAI from "openai";
 
-const client = new OpenAI({
+const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
@@ -28,11 +28,16 @@ function cleanJsonString(text: string) {
 }
 
 function safeJsonParse<T>(text: string): T {
-  return JSON.parse(cleanJsonString(text)) as T;
+  try {
+    return JSON.parse(cleanJsonString(text)) as T;
+  } catch (error) {
+    console.error("JSON parse error:", text);
+    throw new Error("AI JSON parse edilemedi.");
+  }
 }
 
 async function analyzeProduct(imageBase64: string): Promise<ProductAnalysis> {
-  const response = await client.responses.create({
+  const response = await openai.responses.create({
     model: "gpt-4.1-mini",
     input: [
       {
@@ -77,7 +82,7 @@ async function generateCopy(params: {
   campaign: string;
   targetAudience: string;
 }): Promise<GeneratedText> {
-  const response = await client.responses.create({
+  const response = await openai.responses.create({
     model: "gpt-4.1-mini",
     input: `
 Sen profesyonel Türkçe reklam metin yazarıısın.
@@ -101,7 +106,7 @@ Format:
 Kurallar:
 - Türkçe yaz
 - başlık kısa ve güçlü olsun
-- slogan hissi taşısın
+- açıklama kısa ve reklam diliyle olsun
 - CTA net olsun
 - hashtag tek string olsun
 - JSON dışında hiçbir şey yazma
@@ -121,10 +126,10 @@ function buildBackgroundPrompt(params: {
 }) {
   const { brandName, sector, format, campaign, analysis, randomSeedHint } = params;
 
-  const formatMap: Record<string, string> = {
-    square: "1:1 social media ad composition",
-    portrait: "4:5 vertical premium ad composition",
-    landscape: "16:9 banner ad composition",
+  const formatTextMap: Record<string, string> = {
+    square: "instagram social media ad, square composition",
+    portrait: "vertical social media ad, story style composition",
+    landscape: "horizontal banner advertising composition",
   };
 
   return `
@@ -133,7 +138,7 @@ Create a premium advertising background scene only.
 Brand context: ${brandName}
 Sector: ${sector}
 Campaign: ${campaign}
-Format: ${formatMap[format] || "1:1 ad composition"}
+Format intent: ${formatTextMap[format] || "instagram ad composition"}
 
 Reference product info:
 - Product type: ${analysis.productType}
@@ -145,21 +150,76 @@ Reference product info:
 Creative variation hint: ${randomSeedHint}
 
 Important rules:
-- DO NOT generate the product itself
-- center area must be reserved for placing the real uploaded product later
-- leave strong clean composition space around the center
-- create realistic premium lighting and decorative advertising environment
-- background should support product placement
-- top area should support headline placement
-- lower area should support CTA / campaign labels
-- no text
-- no letters
-- no typography
-- no watermark
-- no logo
-- no furniture/product replica in the center
-- empty center hero area for product compositing
+- Do NOT generate the product itself
+- Do NOT generate a duplicate of the product
+- Reserve the center area for placing the real uploaded product later
+- Build a premium Instagram ad background
+- Add advertising energy, set design, depth, stylish props, lighting and composition
+- Top area should support headline placement
+- Lower area should support CTA placement
+- Make it feel like a real social media campaign visual
+- No text
+- No letters
+- No typography
+- No logo
+- No watermark
+- No product replica in the center
 `.trim();
+}
+
+function getImagenAspectRatio(format: string) {
+  if (format === "portrait") return "3:4";
+  if (format === "landscape") return "16:9";
+  return "1:1";
+}
+
+async function generateGeminiBackground(prompt: string, format: string): Promise<string> {
+  const apiKey = process.env.GEMINI_API_KEY;
+
+  if (!apiKey) {
+    throw new Error("GEMINI_API_KEY tanımlı değil.");
+  }
+
+  const response = await fetch(
+    "https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-goog-api-key": apiKey,
+      },
+      body: JSON.stringify({
+        instances: [
+          {
+            prompt,
+          },
+        ],
+        parameters: {
+          sampleCount: 1,
+          aspectRatio: getImagenAspectRatio(format),
+        },
+      }),
+    }
+  );
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    console.error("Gemini/Imagen error:", data);
+    throw new Error(data?.error?.message || "Gemini background üretimi başarısız oldu.");
+  }
+
+  const imageBase64 =
+    data?.predictions?.[0]?.bytesBase64Encoded ||
+    data?.predictions?.[0]?.image?.imageBytes ||
+    "";
+
+  if (!imageBase64) {
+    console.error("Unexpected Gemini/Imagen response:", data);
+    throw new Error("Gemini görsel verisi dönmedi.");
+  }
+
+  return imageBase64;
 }
 
 export async function POST(req: Request) {
@@ -221,13 +281,7 @@ export async function POST(req: Request) {
       randomSeedHint,
     });
 
-    const backgroundResponse = await client.images.generate({
-      model: "gpt-image-1",
-      size: "1024x1024",
-      prompt: backgroundPrompt,
-    });
-
-    const backgroundBase64 = backgroundResponse.data?.[0]?.b64_json || "";
+    const backgroundBase64 = await generateGeminiBackground(backgroundPrompt, format);
 
     return Response.json({
       success: true,
@@ -252,7 +306,7 @@ export async function POST(req: Request) {
     return Response.json(
       {
         success: false,
-        error: "Sahne oluşturulurken hata oluştu.",
+        error: error instanceof Error ? error.message : "Sahne oluşturulurken hata oluştu.",
       },
       { status: 500 }
     );
