@@ -131,25 +131,26 @@ function pickRandomVariant() {
 function getSectorCreativeDirection(sector: string) {
   const s = sector.toLowerCase();
 
-  if (s.includes("bebek") || s.includes("çocuk") || s.includes("cocuk")) {
+  if (s.includes("bebek") || s.includes("çocuk") || s.includes("cocuk") || s.includes("bez")) {
     return `
-baby product advertising scene,
-soft aqua palette,
-floating particles,
+baby diaper advertising scene,
+soft aqua and pastel tones,
 fresh clean mood,
-gentle splash effects,
-playful premium campaign styling
+premium splash effects,
+floating decorative particles,
+playful but premium campaign styling,
+instagram ad energy
 `;
   }
 
   if (s.includes("mobilya")) {
     return `
 furniture advertising scene,
-decorative premium interior styling,
+modern premium interior styling,
 architectural depth,
 warm textured surfaces,
-modern lifestyle campaign look,
-instagram premium furniture ad composition
+decorative premium props,
+high-end instagram furniture campaign look
 `;
   }
 
@@ -159,7 +160,7 @@ beauty advertising scene,
 clean glossy premium setup,
 soft liquid reflections,
 floating highlights,
-high-end skincare campaign feeling
+high-end skincare campaign styling
 `;
   }
 
@@ -185,64 +186,48 @@ function getVariantInstruction(variant: string) {
   const map: Record<string, string> = {
     "splash-campaign": `
 Create a bold campaign visual with strong decorative effects,
-dynamic layers, premium energy, floating accents,
-and obvious ad composition zones.
+dynamic layers, premium energy, floating accents and obvious ad composition zones.
 `,
     "premium-showcase": `
 Create a refined premium showcase scene with elegant decor,
-luxury lighting, premium material feeling,
-and polished advertising composition.
+luxury lighting, premium material feeling and polished advertising composition.
 `,
     "editorial-social": `
 Create a magazine-like editorial social post layout with strong hierarchy,
-stylish set design, visual rhythm,
-and premium instagram campaign feeling.
+stylish set design, visual rhythm and premium campaign feeling.
 `,
     "promo-layout": `
-Create a promotional ad layout with clear title ribbon shape,
-bottom call-to-action panel shape,
-and campaign badge zones.
+Create a promotional ad layout with decorative banner zones,
+cta box zones and campaign badge areas.
 `,
     "clean-impact": `
 Create a clean but striking social media ad composition
-with spacious layout, strong product focus,
-and modern campaign styling.
+with spacious layout, strong product focus and modern campaign styling.
 `,
   };
 
   return map[variant] || map["promo-layout"];
 }
 
-function getDesignZoneInstruction(format: string) {
+function getFormatSettings(format: string) {
   if (format === "portrait") {
-    return `
-Use vertical Instagram ad composition.
-Top area: one large decorative title panel or ribbon shape.
-Middle area: clean center-right or center zone for real product placement.
-Bottom area: one CTA panel shape and one small badge zone.
-Composition must feel like a designed ad post, not a plain room photo.
-`;
+    return {
+      size: "1024x1536" as const,
+      formatText: "vertical instagram story / reel ad composition",
+    };
   }
 
   if (format === "landscape") {
-    return `
-Use horizontal advertising composition.
-Left or upper-left: large title banner zone.
-Center: open hero zone for real product placement.
-Lower-left: CTA panel shape.
-Right side: badge or mini-info shape.
-Composition must feel like a polished marketing banner.
-`;
+    return {
+      size: "1536x1024" as const,
+      formatText: "horizontal banner advertising composition",
+    };
   }
 
-  return `
-Use square Instagram post composition.
-Top-left or top: decorative headline banner zone.
-Center: open hero zone for real product placement.
-Bottom-left: CTA panel shape.
-Bottom-right: badge/logo friendly zone.
-Composition must feel like a premium ad post.
-`;
+  return {
+    size: "1024x1024" as const,
+    formatText: "square instagram post composition",
+  };
 }
 
 function buildBackgroundPrompt(params: {
@@ -258,14 +243,14 @@ function buildBackgroundPrompt(params: {
   const variant = pickRandomVariant();
   const sectorDirection = getSectorCreativeDirection(sector);
   const variantInstruction = getVariantInstruction(variant);
-  const designZones = getDesignZoneInstruction(format);
+  const formatSettings = getFormatSettings(format);
 
   return `
-Create a premium instagram advertising poster background.
+Create a premium social media advertising poster background.
 
 Brand context: ${brandName}
 Campaign context: ${campaign}
-Sector: ${sector}
+Format intent: ${formatSettings.formatText}
 
 Reference product info:
 - Product type: ${analysis.productType}
@@ -283,90 +268,47 @@ ${sectorDirection}
 Variant direction:
 ${variantInstruction}
 
-Design zone instructions:
-${designZones}
+Design goals:
+- create a visually rich instagram ad scene
+- include decorative banner-like shapes, label zones, badge areas, CTA-like panel zones
+- create visual hierarchy like a real ad creative
+- use premium props, textures, effects, lighting and mood
+- make the result feel designed, not like a plain room photo
+- leave a strong central hero zone for compositing the real uploaded product later
+- the center must stay usable for a real product PNG
+- use eye-catching campaign composition and commercial styling
+- vary props, layout and framing every generation
 
-Critical composition rules:
-- The real uploaded product will be composited later by code
-- Do NOT generate the actual product
-- Do NOT generate a duplicate of the product
-- Do NOT place a fake product in the center
-- Keep the main center zone visually clean for product placement
-- Add decorative campaign elements, textures, lighting, props, effects and scene styling
-- Make this look like a designed Instagram ad, not a normal room photo
-- Include obvious visual shapes for title, subtitle, CTA and badge placement
-- These shapes can be ribbons, rounded panels, banners, capsules, label zones, poster blocks, promo cards
-- Those zones must look designed and premium
-- Use strong visual hierarchy and ad composition
-- Make the result visually interesting and commercially appealing
-- Avoid generic repeated living room layouts
-- Vary framing, prop density, texture, lighting and campaign mood
-
-Hard text restrictions:
-- No readable text
-- No letters
-- No words
-- No numbers
-- No typography
-- No headline text
-- No CTA text
-- No logo text
-- No watermark
-- No signage
-- If text-like areas are needed, render them as blank decorative shapes only
+Hard restrictions:
+- do not generate the actual product
+- do not generate a duplicate of the product
+- do not place a fake product in the center
+- no readable text
+- no letters
+- no words
+- no numbers
+- no typography
+- no watermark
+- no logo text
+- if text-like areas are needed, render them as blank decorative design shapes only
 `.trim();
 }
 
-function getImagenAspectRatio(format: string) {
-  if (format === "portrait") return "3:4";
-  if (format === "landscape") return "16:9";
-  return "1:1";
-}
+async function generateOpenAIBackground(prompt: string, format: string): Promise<string> {
+  const formatSettings = getFormatSettings(format);
 
-async function generateGeminiBackground(prompt: string, format: string): Promise<string> {
-  const apiKey = process.env.GEMINI_API_KEY;
+  const imageResponse = await openai.images.generate({
+    model: "gpt-image-1",
+    prompt,
+    size: formatSettings.size,
+    quality: "high",
+    output_format: "png",
+  });
 
-  if (!apiKey) {
-    throw new Error("GEMINI_API_KEY tanımlı değil.");
-  }
-
-  const response = await fetch(
-    "https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict",
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-goog-api-key": apiKey,
-      },
-      body: JSON.stringify({
-        instances: [
-          {
-            prompt,
-          },
-        ],
-        parameters: {
-          sampleCount: 1,
-          aspectRatio: getImagenAspectRatio(format),
-        },
-      }),
-    }
-  );
-
-  const data = await response.json();
-
-  if (!response.ok) {
-    console.error("Gemini/Imagen error:", data);
-    throw new Error(data?.error?.message || "Gemini background üretimi başarısız oldu.");
-  }
-
-  const imageBase64 =
-    data?.predictions?.[0]?.bytesBase64Encoded ||
-    data?.predictions?.[0]?.image?.imageBytes ||
-    "";
+  const imageBase64 = imageResponse.data?.[0]?.b64_json || "";
 
   if (!imageBase64) {
-    console.error("Unexpected Gemini/Imagen response:", data);
-    throw new Error("Gemini görsel verisi dönmedi.");
+    throw new Error("OpenAI görsel verisi dönmedi.");
   }
 
   return imageBase64;
@@ -431,7 +373,7 @@ export async function POST(req: Request) {
       randomSeedHint,
     });
 
-    const backgroundBase64 = await generateGeminiBackground(backgroundPrompt, format);
+    const backgroundBase64 = await generateOpenAIBackground(backgroundPrompt, format);
 
     return Response.json({
       success: true,
