@@ -2,9 +2,15 @@
 
 import { ChangeEvent, FormEvent, useMemo, useState } from "react";
 
-type ApiResponse = {
+type ComposeResponse = {
   success: boolean;
   imageBase64?: string;
+  error?: string;
+};
+
+type LayoutResponse = {
+  success: boolean;
+  layout?: unknown;
   error?: string;
 };
 
@@ -36,8 +42,16 @@ export default function CreatePage() {
 
   async function fileToBase64(file: File) {
     const buffer = await file.arrayBuffer();
-    const base64 = Buffer.from(buffer).toString("base64");
-    return base64;
+    let binary = "";
+    const bytes = new Uint8Array(buffer);
+    const chunkSize = 8192;
+
+    for (let i = 0; i < bytes.length; i += chunkSize) {
+      const chunk = bytes.subarray(i, i + chunkSize);
+      binary += String.fromCharCode(...chunk);
+    }
+
+    return btoa(binary);
   }
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
@@ -55,7 +69,8 @@ export default function CreatePage() {
     try {
       const base64 = await fileToBase64(referenceImageFile);
 
-      const res = await fetch("/api/compose-base", {
+      // 1) Base image oluştur
+      const composeRes = await fetch("/api/compose-base", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -72,15 +87,38 @@ export default function CreatePage() {
         }),
       });
 
-      const data: ApiResponse = await res.json();
+      const composeData: ComposeResponse = await composeRes.json();
 
-      if (!data.success) {
-        throw new Error(data.error || "Bir hata oluştu");
+      if (!composeRes.ok || !composeData.success || !composeData.imageBase64) {
+        throw new Error(composeData.error || "Base image üretilemedi");
       }
 
-      if (data.imageBase64) {
-        setResultImage(data.imageBase64);
+      setResultImage(composeData.imageBase64);
+
+      // 2) Layout plan oluştur
+      const layoutRes = await fetch("/api/plan-layout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          format,
+          brandName,
+          sector,
+          campaign,
+          targetAudience,
+          imageBase64: composeData.imageBase64,
+          mimeType: "image/png",
+        }),
+      });
+
+      const layoutData: LayoutResponse = await layoutRes.json();
+
+      if (!layoutRes.ok || !layoutData.success) {
+        throw new Error(layoutData.error || "Layout plan oluşturulamadı");
       }
+
+      console.log("LAYOUT PLAN:", layoutData.layout);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Hata oluştu");
     } finally {
@@ -133,12 +171,12 @@ export default function CreatePage() {
         <input type="file" accept="image/*" onChange={handleReferenceChange} required />
 
         {referencePreview && (
-          <img src={referencePreview} style={{ width: "100%", marginTop: 10 }} />
+          <img src={referencePreview} alt="Önizleme" style={{ width: "100%", marginTop: 10 }} />
         )}
 
-        {error && <div style={{ color: "red" }}>{error}</div>}
+        {error && <div style={{ color: "red", marginTop: 10 }}>{error}</div>}
 
-        <button disabled={loading}>
+        <button disabled={loading} style={{ marginTop: 12 }}>
           {loading ? "Oluşturuluyor..." : "Kreatif Oluştur"}
         </button>
       </form>
@@ -146,7 +184,7 @@ export default function CreatePage() {
       {generatedImageSrc && (
         <div style={{ marginTop: 40 }}>
           <h2>Sonuç</h2>
-          <img src={generatedImageSrc} style={{ width: 500 }} />
+          <img src={generatedImageSrc} alt="Sonuç" style={{ width: 500, maxWidth: "100%" }} />
         </div>
       )}
     </div>
