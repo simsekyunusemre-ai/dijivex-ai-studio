@@ -1,43 +1,59 @@
 import sharp from "sharp";
 
+function escapeXml(text: string) {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&apos;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
 function svgToBuffer(svg: string) {
-  return Buffer.from(svg);
+  return Buffer.from(svg, "utf-8");
 }
 
 function createTitleSvg(title: string) {
+  const safeTitle = escapeXml(title);
+
   return `
-  <svg width="1080" height="220" xmlns="http://www.w3.org/2000/svg">
-    <style>
-      .title {
-        fill: #1f2937;
-        font-size: 64px;
-        font-weight: 800;
-        font-family: Arial, Helvetica, sans-serif;
-      }
-    </style>
-    <text x="540" y="110" text-anchor="middle" class="title">${title}</text>
+  <svg width="1080" height="180" viewBox="0 0 1080 180" xmlns="http://www.w3.org/2000/svg">
+    <rect width="1080" height="180" fill="transparent"/>
+    <text
+      x="540"
+      y="95"
+      text-anchor="middle"
+      font-size="64"
+      font-weight="800"
+      font-family="DejaVu Sans, Arial, sans-serif"
+      fill="#1f2937"
+    >${safeTitle}</text>
   </svg>`;
 }
 
 function createSubtitleSvg(text: string) {
+  const safeText = escapeXml(text);
+
   return `
-  <svg width="900" height="90" xmlns="http://www.w3.org/2000/svg">
-    <rect x="0" y="0" rx="24" ry="24" width="900" height="90" fill="#dbeafe"/>
+  <svg width="900" height="100" viewBox="0 0 900 100" xmlns="http://www.w3.org/2000/svg">
+    <rect x="0" y="0" rx="24" ry="24" width="900" height="100" fill="#dbeafe"/>
     <text
       x="450"
-      y="58"
+      y="62"
       text-anchor="middle"
-      fill="#1e3a8a"
       font-size="38"
       font-weight="700"
-      font-family="Arial, Helvetica, sans-serif"
-    >${text}</text>
+      font-family="DejaVu Sans, Arial, sans-serif"
+      fill="#1e3a8a"
+    >${safeText}</text>
   </svg>`;
 }
 
 function createCtaSvg(text: string) {
+  const safeText = escapeXml(text);
+
   return `
-  <svg width="520" height="120" xmlns="http://www.w3.org/2000/svg">
+  <svg width="520" height="120" viewBox="0 0 520 120" xmlns="http://www.w3.org/2000/svg">
     <defs>
       <linearGradient id="cta" x1="0" y1="0" x2="1" y2="1">
         <stop offset="0%" stop-color="#22c55e"/>
@@ -47,31 +63,37 @@ function createCtaSvg(text: string) {
     <rect x="0" y="0" rx="36" ry="36" width="520" height="120" fill="url(#cta)"/>
     <text
       x="260"
-      y="73"
+      y="74"
       text-anchor="middle"
-      fill="#ffffff"
       font-size="42"
       font-weight="800"
-      font-family="Arial, Helvetica, sans-serif"
-    >${text}</text>
+      font-family="DejaVu Sans, Arial, sans-serif"
+      fill="#ffffff"
+    >${safeText}</text>
   </svg>`;
 }
 
 function createBulletSvg(lines: string[]) {
-  const safeLines = lines.slice(0, 3);
-  const textRows = safeLines
-    .map(
-      (line, i) => `
-      <circle cx="34" cy="${42 + i * 74}" r="14" fill="#22c55e"/>
-      <text x="70" y="${52 + i * 74}" fill="#111827" font-size="34" font-weight="700" font-family="Arial, Helvetica, sans-serif">${line}</text>
-    `
-    )
-    .join("");
+  const safeLines = lines.slice(0, 3).map(escapeXml);
 
   return `
-  <svg width="760" height="250" xmlns="http://www.w3.org/2000/svg">
-    <rect x="0" y="0" rx="28" ry="28" width="760" height="250" fill="#ffffff" fill-opacity="0.92"/>
-    ${textRows}
+  <svg width="760" height="250" viewBox="0 0 760 250" xmlns="http://www.w3.org/2000/svg">
+    <rect x="0" y="0" rx="28" ry="28" width="760" height="250" fill="#ffffff" fill-opacity="0.96"/>
+    
+    <circle cx="34" cy="48" r="14" fill="#22c55e"/>
+    <text x="70" y="58" font-size="34" font-weight="700" font-family="DejaVu Sans, Arial, sans-serif" fill="#111827">
+      ${safeLines[0] || ""}
+    </text>
+
+    <circle cx="34" cy="122" r="14" fill="#22c55e"/>
+    <text x="70" y="132" font-size="34" font-weight="700" font-family="DejaVu Sans, Arial, sans-serif" fill="#111827">
+      ${safeLines[1] || ""}
+    </text>
+
+    <circle cx="34" cy="196" r="14" fill="#22c55e"/>
+    <text x="70" y="206" font-size="34" font-weight="700" font-family="DejaVu Sans, Arial, sans-serif" fill="#111827">
+      ${safeLines[2] || ""}
+    </text>
   </svg>`;
 }
 
@@ -88,12 +110,11 @@ export async function POST(req: Request) {
     }
 
     const title = brandName?.trim() || "Dijivex";
-    const subtitle =
-      sector?.trim() || "Premium ürün reklam tasarımı";
-    const ctaText = "Şimdi Keşfet";
+    const subtitle = sector?.trim() || "Premium urun reklami";
+    const ctaText = "Simdi Kesfet";
     const bullets = [
-      "Şık ve modern tasarım",
-      "Dikkat çekici ürün sunumu",
+      "Sik ve modern tasarim",
+      "Dikkat cekici urun sunumu",
       "Hemen incele",
     ];
 
@@ -125,12 +146,12 @@ export async function POST(req: Request) {
       .composite([
         {
           input: titleSvg,
-          top: 50,
+          top: 40,
           left: 0,
         },
         {
           input: subtitleSvg,
-          top: 150,
+          top: 140,
           left: 90,
         },
         {
@@ -160,7 +181,7 @@ export async function POST(req: Request) {
   } catch (error: any) {
     return Response.json(
       {
-        error: "Render hatası",
+        error: "Render hatasi",
         details: error?.message || "Bilinmeyen hata",
       },
       { status: 500 }
