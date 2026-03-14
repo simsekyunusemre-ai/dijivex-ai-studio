@@ -2,6 +2,13 @@
 
 import { ChangeEvent, FormEvent, useMemo, useState } from "react";
 
+type RemoveBgResponse = {
+  success?: boolean;
+  imageBase64?: string;
+  cutoutBase64?: string;
+  error?: string;
+};
+
 export default function CreatePage() {
   const [brandName, setBrandName] = useState("");
   const [sector, setSector] = useState("");
@@ -47,9 +54,35 @@ export default function CreatePage() {
     setResultUrl("");
 
     try {
-      const productImageBase64 = await fileToBase64(referenceImageFile);
+      const originalBase64 = await fileToBase64(referenceImageFile);
 
-      const res = await fetch("/api/render-ad", {
+      // 1) Remove BG
+      const removeBgRes = await fetch("/api/remove-bg", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          imageBase64: originalBase64,
+          mimeType: referenceImageFile.type,
+        }),
+      });
+
+      const removeBgData: RemoveBgResponse = await removeBgRes.json();
+
+      if (!removeBgRes.ok) {
+        throw new Error(removeBgData?.error || "Arka plan silinemedi");
+      }
+
+      const cutoutBase64 =
+        removeBgData.cutoutBase64 || removeBgData.imageBase64;
+
+      if (!cutoutBase64) {
+        throw new Error("Arka planı silinmiş görsel dönmedi");
+      }
+
+      // 2) Render ad
+      const renderRes = await fetch("/api/render-ad", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -57,16 +90,16 @@ export default function CreatePage() {
         body: JSON.stringify({
           brandName,
           sector,
-          productImageBase64,
+          productImageBase64: cutoutBase64,
         }),
       });
 
-      if (!res.ok) {
-        const text = await res.text();
+      if (!renderRes.ok) {
+        const text = await renderRes.text();
         throw new Error(text || "Render başarısız");
       }
 
-      const blob = await res.blob();
+      const blob = await renderRes.blob();
       const imageUrl = URL.createObjectURL(blob);
       setResultUrl(imageUrl);
     } catch (err) {
