@@ -16,8 +16,8 @@ export async function POST(req: Request) {
 
     const resizedProduct = await sharp(productBuffer)
       .resize({
-        width: 700,
-        height: 700,
+        width: 1000,
+        height: 800,
         fit: "contain",
       })
       .png()
@@ -34,8 +34,8 @@ export async function POST(req: Request) {
       .composite([
         {
           input: resizedProduct,
-          top: 260,
-          left: 190,
+          top: 300,
+          left: 40,
         },
       ])
       .png()
