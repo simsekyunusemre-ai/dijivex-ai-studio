@@ -3,9 +3,9 @@
 import { ChangeEvent, FormEvent, useMemo, useState } from "react";
 
 type RemoveBgResponse = {
-  success?: boolean;
-  imageBase64?: string;
-  cutoutBase64?: string;
+  success: boolean;
+  image?: string;
+  mimeType?: string;
   error?: string;
 };
 
@@ -26,65 +26,6 @@ export default function CreatePage() {
     setReferencePreview(file ? URL.createObjectURL(file) : "");
   }
 
- async function handleSubmit(e: FormEvent<HTMLFormElement>) {
-  e.preventDefault();
-
-  if (!referenceImageFile) {
-    setError("Ürün görseli gerekli");
-    return;
-  }
-
-  setLoading(true);
-  setError("");
-  setResultUrl("");
-
-  try {
-
-    // 1 remove bg
-    const formData = new FormData();
-    formData.append("image", referenceImageFile);
-
-    const removeRes = await fetch("/api/remove-bg", {
-      method: "POST",
-      body: formData,
-    });
-
-    const removeData = await removeRes.json();
-
-    if (!removeRes.ok || !removeData.success) {
-      throw new Error(removeData.error || "Arka plan kaldırma başarısız");
-    }
-
-    const cutProductBase64 = removeData.image;
-
-    // 2 render
-    const renderRes = await fetch("/api/render-ad", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        brandName,
-        sector,
-        productImageBase64: cutProductBase64,
-      }),
-    });
-
-    if (!renderRes.ok) {
-      const text = await renderRes.text();
-      throw new Error(text || "Render başarısız");
-    }
-
-    const blob = await renderRes.blob();
-    const imageUrl = URL.createObjectURL(blob);
-    setResultUrl(imageUrl);
-
-  } catch (err) {
-    setError(err instanceof Error ? err.message : "Bir hata oluştu");
-  } finally {
-    setLoading(false);
-  }
-}
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
@@ -98,34 +39,20 @@ export default function CreatePage() {
     setResultUrl("");
 
     try {
-      const originalBase64 = await fileToBase64(referenceImageFile);
+      const formData = new FormData();
+      formData.append("image", referenceImageFile);
 
-      // 1) Remove BG
-      const removeBgRes = await fetch("/api/remove-bg", {
+      const removeRes = await fetch("/api/remove-bg", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          imageBase64: originalBase64,
-          mimeType: referenceImageFile.type,
-        }),
+        body: formData,
       });
 
-      const removeBgData: RemoveBgResponse = await removeBgRes.json();
+      const removeData: RemoveBgResponse = await removeRes.json();
 
-      if (!removeBgRes.ok) {
-        throw new Error(removeBgData?.error || "Arka plan silinemedi");
+      if (!removeRes.ok || !removeData.success || !removeData.image) {
+        throw new Error(removeData.error || "Arka plan kaldırma başarısız");
       }
 
-      const cutoutBase64 =
-        removeBgData.cutoutBase64 || removeBgData.imageBase64;
-
-      if (!cutoutBase64) {
-        throw new Error("Arka planı silinmiş görsel dönmedi");
-      }
-
-      // 2) Render ad
       const renderRes = await fetch("/api/render-ad", {
         method: "POST",
         headers: {
@@ -134,7 +61,7 @@ export default function CreatePage() {
         body: JSON.stringify({
           brandName,
           sector,
-          productImageBase64: cutoutBase64,
+          productImageBase64: removeData.image,
         }),
       });
 
