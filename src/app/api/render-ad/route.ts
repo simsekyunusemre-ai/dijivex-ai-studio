@@ -3,28 +3,34 @@ import sharp from "sharp";
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { productImageBase64, mimeType } = body;
+    const { productImageBase64 } = body;
 
     if (!productImageBase64) {
-      return Response.json({ error: "Ürün görseli gerekli" }, { status: 400 });
+      return Response.json(
+        { error: "Ürün görseli gerekli" },
+        { status: 400 }
+      );
     }
 
     const productBuffer = Buffer.from(productImageBase64, "base64");
 
-    const canvas = sharp({
+    const resizedProduct = await sharp(productBuffer)
+      .resize({
+        width: 700,
+        height: 700,
+        fit: "contain",
+      })
+      .png()
+      .toBuffer();
+
+    const finalImage = await sharp({
       create: {
         width: 1080,
         height: 1350,
         channels: 4,
         background: { r: 245, g: 240, b: 235, alpha: 1 },
       },
-    });
-
-    const resizedProduct = await sharp(productBuffer)
-      .resize({ width: 700, height: 700, fit: "contain" })
-      .toBuffer();
-
-    const finalImage = await canvas
+    })
       .composite([
         {
           input: resizedProduct,
@@ -35,7 +41,7 @@ export async function POST(req: Request) {
       .png()
       .toBuffer();
 
-    return new Response(finalImage, {
+    return new Response(new Uint8Array(finalImage), {
       headers: {
         "Content-Type": "image/png",
       },
