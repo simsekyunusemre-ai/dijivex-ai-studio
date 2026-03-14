@@ -2,37 +2,16 @@
 
 import { ChangeEvent, FormEvent, useMemo, useState } from "react";
 
-type ComposeResponse = {
-  success: boolean;
-  imageBase64?: string;
-  error?: string;
-};
-
-type LayoutResponse = {
-  success: boolean;
-  layout?: unknown;
-  error?: string;
-};
-
 export default function CreatePage() {
   const [brandName, setBrandName] = useState("");
   const [sector, setSector] = useState("");
-  const [format, setFormat] = useState("square");
-  const [targetAudience, setTargetAudience] = useState("");
-  const [campaign, setCampaign] = useState("");
-  const [customVisualRequest, setCustomVisualRequest] = useState("");
-
   const [referenceImageFile, setReferenceImageFile] = useState<File | null>(null);
   const [referencePreview, setReferencePreview] = useState("");
-
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [resultImage, setResultImage] = useState("");
+  const [resultUrl, setResultUrl] = useState("");
 
-  const generatedImageSrc = useMemo(() => {
-    if (!resultImage) return "";
-    return `data:image/png;base64,${resultImage}`;
-  }, [resultImage]);
+  const previewSrc = useMemo(() => referencePreview, [referencePreview]);
 
   function handleReferenceChange(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0] || null;
@@ -41,20 +20,19 @@ export default function CreatePage() {
   }
 
   async function fileToBase64(file: File) {
-  return new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
+    return new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
 
-    reader.onload = () => {
-      const result = reader.result as string;
-      const base64 = result.split(",")[1];
-      resolve(base64);
-    };
+      reader.onload = () => {
+        const result = reader.result as string;
+        const base64 = result.split(",")[1];
+        resolve(base64);
+      };
 
-    reader.onerror = () => reject(new Error("Dosya okunamadı"));
-
-    reader.readAsDataURL(file);
-  });
-}
+      reader.onerror = () => reject(new Error("Dosya okunamadı"));
+      reader.readAsDataURL(file);
+    });
+  }
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -66,13 +44,12 @@ export default function CreatePage() {
 
     setLoading(true);
     setError("");
-    setResultImage("");
+    setResultUrl("");
 
     try {
-      const base64 = await fileToBase64(referenceImageFile);
+      const productImageBase64 = await fileToBase64(referenceImageFile);
 
-      // 1) Base image oluştur
-      const composeRes = await fetch("/api/compose-base", {
+      const res = await fetch("/api/render-ad", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -80,113 +57,97 @@ export default function CreatePage() {
         body: JSON.stringify({
           brandName,
           sector,
-          format,
-          targetAudience,
-          campaign,
-          customerVisualRequest: customVisualRequest,
-          productImageBase64: base64,
-          mimeType: referenceImageFile.type,
+          productImageBase64,
         }),
       });
 
-      const composeData: ComposeResponse = await composeRes.json();
-
-      if (!composeRes.ok || !composeData.success || !composeData.imageBase64) {
-        throw new Error(composeData.error || "Base image üretilemedi");
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || "Render başarısız");
       }
 
-      setResultImage(composeData.imageBase64);
-
-      // 2) Layout plan oluştur
-      const layoutRes = await fetch("/api/plan-layout", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          format,
-          brandName,
-          sector,
-          campaign,
-          targetAudience,
-          imageBase64: composeData.imageBase64,
-          mimeType: "image/png",
-        }),
-      });
-
-      const layoutData: LayoutResponse = await layoutRes.json();
-
-      if (!layoutRes.ok || !layoutData.success) {
-        throw new Error(layoutData.error || "Layout plan oluşturulamadı");
-      }
-
-      console.log("LAYOUT PLAN:", layoutData.layout);
+      const blob = await res.blob();
+      const imageUrl = URL.createObjectURL(blob);
+      setResultUrl(imageUrl);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Hata oluştu");
+      setError(err instanceof Error ? err.message : "Bir hata oluştu");
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div style={{ padding: 40 }}>
+    <div style={{ padding: 40, maxWidth: 1200, margin: "0 auto" }}>
       <h1>Dijivex AI Studio</h1>
 
-      <form onSubmit={handleSubmit} style={{ maxWidth: 500 }}>
-        <input
-          placeholder="Marka"
-          value={brandName}
-          onChange={(e) => setBrandName(e.target.value)}
-          required
-        />
+      <form onSubmit={handleSubmit} style={{ maxWidth: 500, marginBottom: 30 }}>
+        <div style={{ marginBottom: 12 }}>
+          <input
+            placeholder="Marka"
+            value={brandName}
+            onChange={(e) => setBrandName(e.target.value)}
+            style={{ width: "100%", padding: 12 }}
+          />
+        </div>
 
-        <input
-          placeholder="Sektör"
-          value={sector}
-          onChange={(e) => setSector(e.target.value)}
-          required
-        />
+        <div style={{ marginBottom: 12 }}>
+          <input
+            placeholder="Sektör"
+            value={sector}
+            onChange={(e) => setSector(e.target.value)}
+            style={{ width: "100%", padding: 12 }}
+          />
+        </div>
 
-        <input
-          placeholder="Hedef Kitle"
-          value={targetAudience}
-          onChange={(e) => setTargetAudience(e.target.value)}
-        />
+        <div style={{ marginBottom: 12 }}>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleReferenceChange}
+            required
+          />
+        </div>
 
-        <textarea
-          placeholder="Kampanya mesajı"
-          value={campaign}
-          onChange={(e) => setCampaign(e.target.value)}
-        />
-
-        <textarea
-          placeholder="Görsel isteği"
-          value={customVisualRequest}
-          onChange={(e) => setCustomVisualRequest(e.target.value)}
-        />
-
-        <select value={format} onChange={(e) => setFormat(e.target.value)}>
-          <option value="square">Square</option>
-          <option value="portrait">Story</option>
-        </select>
-
-        <input type="file" accept="image/*" onChange={handleReferenceChange} required />
-
-        {referencePreview && (
-          <img src={referencePreview} alt="Önizleme" style={{ width: "100%", marginTop: 10 }} />
+        {previewSrc && (
+          <div style={{ marginBottom: 12 }}>
+            <img
+              src={previewSrc}
+              alt="Ürün önizleme"
+              style={{ width: 240, borderRadius: 12 }}
+            />
+          </div>
         )}
 
-        {error && <div style={{ color: "red", marginTop: 10 }}>{error}</div>}
+        {error && (
+          <div style={{ color: "red", marginBottom: 12 }}>
+            {error}
+          </div>
+        )}
 
-        <button disabled={loading} style={{ marginTop: 12 }}>
-          {loading ? "Oluşturuluyor..." : "Kreatif Oluştur"}
+        <button
+          type="submit"
+          disabled={loading}
+          style={{
+            padding: "12px 18px",
+            borderRadius: 10,
+            border: "none",
+            background: "#111827",
+            color: "#fff",
+            cursor: "pointer",
+          }}
+        >
+          {loading ? "Oluşturuluyor..." : "Reklamı Oluştur"}
         </button>
       </form>
 
-      {generatedImageSrc && (
-        <div style={{ marginTop: 40 }}>
+      {resultUrl && (
+        <div>
           <h2>Sonuç</h2>
-          <img src={generatedImageSrc} alt="Sonuç" style={{ width: 500, maxWidth: "100%" }} />
+          <img
+            src={resultUrl}
+            alt="Reklam sonucu"
+            style={{ width: 420, maxWidth: "100%", borderRadius: 16 }}
+          />
         </div>
       )}
     </div>
