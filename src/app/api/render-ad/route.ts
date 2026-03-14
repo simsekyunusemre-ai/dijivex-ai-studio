@@ -12,15 +12,17 @@ export async function POST(req: Request) {
       );
     }
 
-  const resizedProduct = await sharp(productBuffer)
-  .resize({
-    width: 1000,
-    height: 800,
-    fit: "contain",
-    background: { r: 0, g: 0, b: 0, alpha: 0 },
-  })
-  .png()
-  .toBuffer();
+    const productBuffer = Buffer.from(productImageBase64, "base64");
+
+    const resizedProduct = await sharp(productBuffer)
+      .resize({
+        width: 1000,
+        height: 800,
+        fit: "contain",
+        background: { r: 0, g: 0, b: 0, alpha: 0 },
+      })
+      .png()
+      .toBuffer();
 
     const finalImage = await sharp({
       create: {
